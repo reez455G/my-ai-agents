@@ -7,7 +7,7 @@ docker compose ps
 echo
 
 echo "=== 2. Health Check ==="
-curl -sf http://localhost:8888/health && echo " ✅ Hindsight healthy" || echo " ❌ Hindsight not responding"
+curl -sf http://localhost:8890/health && echo " ✅ Hindsight healthy" || echo " ❌ Hindsight not responding"
 echo
 
 echo "=== 3. Knowledge OKF Validation ==="
