@@ -2,7 +2,7 @@
 id: agent-rules-skills-repo-agents
 title: Agent Skills Repo Rules (AGENTS.md)
 tags: [agent-rules, agent-skills-repo, workflow]
-source: /home/efsatu/agent-skills-repo/AGENTS.md
+source: ~/agent-skills-repo/AGENTS.md
 imported_at: 2026-07-07
 ---
 # AGENTS.md

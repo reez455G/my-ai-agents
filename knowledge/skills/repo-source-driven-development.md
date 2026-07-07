@@ -2,7 +2,7 @@
 id: skill-repo-source-driven-development
 title: "Source Driven Development"
 tags: [skill, agent-skills-repo, source-driven-development]
-source: /home/efsatu/agent-skills-repo/skills/source-driven-development/SKILL.md
+source: ~/agent-skills-repo/skills/source-driven-development/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

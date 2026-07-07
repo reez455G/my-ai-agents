@@ -2,7 +2,7 @@
 id: skill-repo-browser-testing-with-devtools
 title: "Browser Testing With Devtools"
 tags: [skill, agent-skills-repo, browser-testing-with-devtools, testing]
-source: /home/efsatu/agent-skills-repo/skills/browser-testing-with-devtools/SKILL.md
+source: ~/agent-skills-repo/skills/browser-testing-with-devtools/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

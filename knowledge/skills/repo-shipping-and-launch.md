@@ -2,7 +2,7 @@
 id: skill-repo-shipping-and-launch
 title: "Shipping And Launch"
 tags: [skill, agent-skills-repo, shipping-and-launch, deployment]
-source: /home/efsatu/agent-skills-repo/skills/shipping-and-launch/SKILL.md
+source: ~/agent-skills-repo/skills/shipping-and-launch/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

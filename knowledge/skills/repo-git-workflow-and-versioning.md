@@ -2,7 +2,7 @@
 id: skill-repo-git-workflow-and-versioning
 title: "Git Workflow And Versioning"
 tags: [skill, agent-skills-repo, git-workflow-and-versioning, git]
-source: /home/efsatu/agent-skills-repo/skills/git-workflow-and-versioning/SKILL.md
+source: ~/agent-skills-repo/skills/git-workflow-and-versioning/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

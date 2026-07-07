@@ -2,7 +2,7 @@
 id: skill-repo-doubt-driven-development
 title: "Doubt Driven Development"
 tags: [skill, agent-skills-repo, doubt-driven-development]
-source: /home/efsatu/agent-skills-repo/skills/doubt-driven-development/SKILL.md
+source: ~/agent-skills-repo/skills/doubt-driven-development/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

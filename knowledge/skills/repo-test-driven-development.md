@@ -2,7 +2,7 @@
 id: skill-repo-test-driven-development
 title: "Test Driven Development"
 tags: [skill, agent-skills-repo, test-driven-development, testing]
-source: /home/efsatu/agent-skills-repo/skills/test-driven-development/SKILL.md
+source: ~/agent-skills-repo/skills/test-driven-development/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

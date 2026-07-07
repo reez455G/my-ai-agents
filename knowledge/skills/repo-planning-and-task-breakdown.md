@@ -2,7 +2,7 @@
 id: skill-repo-planning-and-task-breakdown
 title: "Planning And Task Breakdown"
 tags: [skill, agent-skills-repo, planning-and-task-breakdown, planning]
-source: /home/efsatu/agent-skills-repo/skills/planning-and-task-breakdown/SKILL.md
+source: ~/agent-skills-repo/skills/planning-and-task-breakdown/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

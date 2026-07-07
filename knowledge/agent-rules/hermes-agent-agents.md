@@ -2,7 +2,7 @@
 id: agent-rules-hermes-agent
 title: Hermes Agent Framework Rules (AGENTS.md)
 tags: [agent-rules, hermes-agent, framework]
-source: /home/efsatu/hermes-agent/AGENTS.md
+source: ~/hermes-agent/AGENTS.md
 imported_at: 2026-07-07
 ---
 # Hermes Agent - Development Guide

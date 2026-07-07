@@ -2,7 +2,7 @@
 id: skill-repo-incremental-implementation
 title: "Incremental Implementation"
 tags: [skill, agent-skills-repo, incremental-implementation]
-source: /home/efsatu/agent-skills-repo/skills/incremental-implementation/SKILL.md
+source: ~/agent-skills-repo/skills/incremental-implementation/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

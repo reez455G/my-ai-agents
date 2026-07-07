@@ -2,7 +2,7 @@
 id: skill-poly-engine-manager
 title: Poly Engine Manager Operations
 tags: [skill, poly-engine, manager, operations, pm2]
-source: /home/efsatu/.gemini/skills/poly-engine-manager/SKILL.md
+source: ~/.gemini/skills/poly-engine-manager/SKILL.md
 imported_at: 2026-07-07
 ---
 

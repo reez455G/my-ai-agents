@@ -2,7 +2,7 @@
 id: skill-repo-performance-optimization
 title: "Performance Optimization"
 tags: [skill, agent-skills-repo, performance-optimization, performance]
-source: /home/efsatu/agent-skills-repo/skills/performance-optimization/SKILL.md
+source: ~/agent-skills-repo/skills/performance-optimization/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

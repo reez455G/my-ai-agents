@@ -2,7 +2,7 @@
 id: agent-rules-codex
 title: Codex Agent Rules (AGENTS.md)
 tags: [agent-rules, codex, codegraph]
-source: /home/efsatu/.codex/AGENTS.md
+source: ~/.codex/AGENTS.md
 imported_at: 2026-07-07
 ---
 <!-- CODEGRAPH_START -->

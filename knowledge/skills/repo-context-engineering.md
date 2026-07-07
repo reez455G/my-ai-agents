@@ -2,7 +2,7 @@
 id: skill-repo-context-engineering
 title: "Context Engineering"
 tags: [skill, agent-skills-repo, context-engineering]
-source: /home/efsatu/agent-skills-repo/skills/context-engineering/SKILL.md
+source: ~/agent-skills-repo/skills/context-engineering/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

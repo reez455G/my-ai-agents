@@ -2,7 +2,7 @@
 id: skill-repo-debugging-and-error-recovery
 title: "Debugging And Error Recovery"
 tags: [skill, agent-skills-repo, debugging-and-error-recovery, debugging]
-source: /home/efsatu/agent-skills-repo/skills/debugging-and-error-recovery/SKILL.md
+source: ~/agent-skills-repo/skills/debugging-and-error-recovery/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

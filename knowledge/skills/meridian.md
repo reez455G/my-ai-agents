@@ -2,7 +2,7 @@
 id: skill-meridian
 title: Meridian Trading Bot Skill
 tags: [skill, meridian, trading-bot, polymarket]
-source: /home/efsatu/.meridian/SKILL.md
+source: ~/.meridian/SKILL.md
 imported_at: 2026-07-07
 ---
 # meridian — Solana DLMM LP Agent CLI

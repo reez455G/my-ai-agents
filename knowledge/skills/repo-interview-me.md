@@ -2,7 +2,7 @@
 id: skill-repo-interview-me
 title: "Interview Me"
 tags: [skill, agent-skills-repo, interview-me]
-source: /home/efsatu/agent-skills-repo/skills/interview-me/SKILL.md
+source: ~/agent-skills-repo/skills/interview-me/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

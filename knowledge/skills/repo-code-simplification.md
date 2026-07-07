@@ -2,7 +2,7 @@
 id: skill-repo-code-simplification
 title: "Code Simplification"
 tags: [skill, agent-skills-repo, code-simplification, code-quality]
-source: /home/efsatu/agent-skills-repo/skills/code-simplification/SKILL.md
+source: ~/agent-skills-repo/skills/code-simplification/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

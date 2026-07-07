@@ -2,7 +2,7 @@
 id: skill-repo-documentation-and-adrs
 title: "Documentation And Adrs"
 tags: [skill, agent-skills-repo, documentation-and-adrs, documentation]
-source: /home/efsatu/agent-skills-repo/skills/documentation-and-adrs/SKILL.md
+source: ~/agent-skills-repo/skills/documentation-and-adrs/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

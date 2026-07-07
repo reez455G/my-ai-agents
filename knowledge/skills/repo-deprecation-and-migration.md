@@ -2,7 +2,7 @@
 id: skill-repo-deprecation-and-migration
 title: "Deprecation And Migration"
 tags: [skill, agent-skills-repo, deprecation-and-migration]
-source: /home/efsatu/agent-skills-repo/skills/deprecation-and-migration/SKILL.md
+source: ~/agent-skills-repo/skills/deprecation-and-migration/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

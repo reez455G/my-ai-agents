@@ -2,7 +2,7 @@
 id: skill-repo-spec-driven-development
 title: "Spec Driven Development"
 tags: [skill, agent-skills-repo, spec-driven-development]
-source: /home/efsatu/agent-skills-repo/skills/spec-driven-development/SKILL.md
+source: ~/agent-skills-repo/skills/spec-driven-development/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

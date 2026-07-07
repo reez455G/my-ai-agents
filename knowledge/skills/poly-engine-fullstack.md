@@ -2,7 +2,7 @@
 id: skill-poly-engine-fullstack
 title: Poly Engine Fullstack Development
 tags: [skill, poly-engine, fullstack, development]
-source: /home/efsatu/.gemini/skills/poly-engine-fullstack/SKILL.md
+source: ~/.gemini/skills/poly-engine-fullstack/SKILL.md
 imported_at: 2026-07-07
 ---
 

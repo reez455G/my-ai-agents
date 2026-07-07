@@ -2,7 +2,7 @@
 id: agent-rules-hermes
 title: Hermes Runtime Rules (AGENTS.md)
 tags: [agent-rules, hermes, runtime]
-source: /home/efsatu/.hermes/AGENTS.md
+source: ~/.hermes/AGENTS.md
 imported_at: 2026-07-07
 ---
 These rules apply to every task in this project unless explicitly overridden.

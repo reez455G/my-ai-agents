@@ -2,7 +2,7 @@
 id: skill-agent-skills
 title: Agent Skills Management
 tags: [skill, agent-skills, management, workflow]
-source: /home/efsatu/my-skills/agent-skills/SKILL.md
+source: ~/my-skills/agent-skills/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

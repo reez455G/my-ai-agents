@@ -2,7 +2,7 @@
 id: skill-repo-api-and-interface-design
 title: "Api And Interface Design"
 tags: [skill, agent-skills-repo, api-and-interface-design, api]
-source: /home/efsatu/agent-skills-repo/skills/api-and-interface-design/SKILL.md
+source: ~/agent-skills-repo/skills/api-and-interface-design/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

@@ -2,7 +2,7 @@
 id: skill-repo-idea-refine
 title: "Idea Refine"
 tags: [skill, agent-skills-repo, idea-refine]
-source: /home/efsatu/agent-skills-repo/skills/idea-refine/SKILL.md
+source: ~/agent-skills-repo/skills/idea-refine/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

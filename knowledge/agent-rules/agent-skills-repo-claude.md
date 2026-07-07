@@ -2,7 +2,7 @@
 id: agent-rules-skills-repo-claude
 title: Agent Skills Repo Conventions (CLAUDE.md)
 tags: [agent-rules, agent-skills-repo, conventions]
-source: /home/efsatu/agent-skills-repo/CLAUDE.md
+source: ~/agent-skills-repo/CLAUDE.md
 imported_at: 2026-07-07
 ---
 

@@ -2,7 +2,7 @@
 id: skill-repo-frontend-ui-engineering
 title: "Frontend Ui Engineering"
 tags: [skill, agent-skills-repo, frontend-ui-engineering, frontend]
-source: /home/efsatu/agent-skills-repo/skills/frontend-ui-engineering/SKILL.md
+source: ~/agent-skills-repo/skills/frontend-ui-engineering/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

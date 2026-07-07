@@ -2,7 +2,7 @@
 id: skill-repo-using-agent-skills
 title: "Using Agent Skills"
 tags: [skill, agent-skills-repo, using-agent-skills]
-source: /home/efsatu/agent-skills-repo/skills/using-agent-skills/SKILL.md
+source: ~/agent-skills-repo/skills/using-agent-skills/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

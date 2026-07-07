@@ -2,7 +2,7 @@
 id: skill-repo-ci-cd-and-automation
 title: "Ci Cd And Automation"
 tags: [skill, agent-skills-repo, ci-cd-and-automation, devops]
-source: /home/efsatu/agent-skills-repo/skills/ci-cd-and-automation/SKILL.md
+source: ~/agent-skills-repo/skills/ci-cd-and-automation/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

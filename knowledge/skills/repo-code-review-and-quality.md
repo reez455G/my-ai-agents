@@ -2,7 +2,7 @@
 id: skill-repo-code-review-and-quality
 title: "Code Review And Quality"
 tags: [skill, agent-skills-repo, code-review-and-quality, code-quality]
-source: /home/efsatu/agent-skills-repo/skills/code-review-and-quality/SKILL.md
+source: ~/agent-skills-repo/skills/code-review-and-quality/SKILL.md
 imported_at: 2026-07-07
 ---
 ---

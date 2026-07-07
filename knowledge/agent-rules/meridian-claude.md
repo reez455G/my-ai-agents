@@ -2,7 +2,7 @@
 id: agent-rules-meridian-claude
 title: Meridian Bot Conventions (CLAUDE.md)
 tags: [agent-rules, meridian, trading-bot, conventions]
-source: /home/efsatu/meridian/CLAUDE.md
+source: ~/meridian/CLAUDE.md
 imported_at: 2026-07-07
 ---
 # Meridian — CLAUDE.md

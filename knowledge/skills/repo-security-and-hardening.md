@@ -2,7 +2,7 @@
 id: skill-repo-security-and-hardening
 title: "Security And Hardening"
 tags: [skill, agent-skills-repo, security-and-hardening, security]
-source: /home/efsatu/agent-skills-repo/skills/security-and-hardening/SKILL.md
+source: ~/agent-skills-repo/skills/security-and-hardening/SKILL.md
 imported_at: 2026-07-07
 ---
 ---
