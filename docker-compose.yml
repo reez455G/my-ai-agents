@@ -1,0 +1,22 @@
+services:
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: hindsight
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8890:8888"   # API (host 8890 → container 8888, 8888/8889 in use)
+      - "9999:9999"   # Control Plane UI
+    environment:
+      HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER}
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY}
+      HINDSIGHT_API_LLM_BASE_URL: ${HINDSIGHT_API_LLM_BASE_URL}
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL}
+      HINDSIGHT_API_WORKER_ID: ${HINDSIGHT_API_WORKER_ID}
+      HINDSIGHT_API_STARTUP_WAIT_SECONDS: "1800"
+    volumes:
+      - hindsight-data:/home/hindsight/.pg0
+
+volumes:
+  hindsight-data:

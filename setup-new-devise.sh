@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+# setup-new-device.sh
+# Otomatisasi onboarding device baru untuk my-ai-agent (OKF + Hindsight + omp).
+# Jalankan dari dalam folder repo yang sudah di-clone, atau beri URL repo sebagai argumen.
+#
+# Usage:
+#   ./setup-new-device.sh                              # jika sudah di dalam folder repo
+#   ./setup-new-device.sh git@github.com:user/my-ai-agent.git   # clone dulu, lalu setup
+#
+set -euo pipefail
+
+REPO_DIR_NAME="my-ai-agent"     # WAJIB konsisten di semua device
+OMP_CONFIG_DIR="$HOME/.omp/agent"
+OMP_CONFIG_FILE="$OMP_CONFIG_DIR/config.yml"
+TOKEN_ENV_FILE="$HOME/.omp/agent/.env"   # tidak pernah di-commit ke git
+
+log()  { printf "\033[1;36m[setup]\033[0m %s\n" "$1"; }
+warn() { printf "\033[1;33m[warn]\033[0m %s\n" "$1"; }
+err()  { printf "\033[1;31m[error]\033[0m %s\n" "$1" >&2; }
+
+# ── 1. Clone repo jika diberi URL, atau pastikan sudah berada di folder yang benar ──
+if [ "$#" -eq 1 ]; then
+    REPO_URL="$1"
+    TARGET="$HOME/$REPO_DIR_NAME"
+    if [ -d "$TARGET" ]; then
+        warn "Folder $TARGET sudah ada, skip clone."
+    else
+        log "Cloning $REPO_URL ke $TARGET (nama folder dipin agar konsisten lintas device)..."
+        git clone "$REPO_URL" "$TARGET"
+    fi
+    cd "$TARGET"
+else
+    CURRENT_DIR_NAME="$(basename "$PWD")"
+    if [ "$CURRENT_DIR_NAME" != "$REPO_DIR_NAME" ]; then
+        warn "Nama folder saat ini ('$CURRENT_DIR_NAME') beda dari '$REPO_DIR_NAME'."
+        warn "Ini bisa bikin memori Hindsight ter-fragmentasi (scoping per-project-tagged pakai nama folder)."
+        read -rp "Lanjutkan tetap di folder ini? [y/N] " ans
+        [[ "$ans" =~ ^[Yy]$ ]] || { err "Dibatalkan. Rename/clone ulang ke folder '$REPO_DIR_NAME'."; exit 1; }
+    fi
+fi
+
+if [ ! -f "omp-config.template.yml" ]; then
+    err "omp-config.template.yml tidak ditemukan di $(pwd). Jalankan script ini dari root repo."
+    exit 1
+fi
+
+# ── 2. Cek dependency dasar ──
+for cmd in git curl omp; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        warn "'$cmd' belum terinstall di PATH. Pastikan terpasang sebelum lanjut memakai omp."
+    fi
+done
+
+if command -v tailscale >/dev/null 2>&1; then
+    if ! tailscale status >/dev/null 2>&1; then
+        warn "Tailscale terpasang tapi belum aktif. Jalankan: sudo tailscale up"
+    fi
+else
+    warn "Tailscale belum terinstall. apiUrl di config perlu bisa dijangkau lewat cara lain."
+fi
+
+# ── 3. Minta token Hindsight secara aman (tidak pernah masuk git) ──
+mkdir -p "$OMP_CONFIG_DIR"
+if [ -f "$TOKEN_ENV_FILE" ] && grep -q "HINDSIGHT_API_TOKEN=" "$TOKEN_ENV_FILE"; then
+    log "HINDSIGHT_API_TOKEN sudah ada di $TOKEN_ENV_FILE, skip input."
+else
+    read -rsp "Masukkan HINDSIGHT_API_TOKEN (dari password manager): " HINDSIGHT_API_TOKEN
+    echo
+    [ -n "$HINDSIGHT_API_TOKEN" ] || { err "Token kosong, dibatalkan."; exit 1; }
+    echo "export HINDSIGHT_API_TOKEN=\"$HINDSIGHT_API_TOKEN\"" >> "$TOKEN_ENV_FILE"
+    chmod 600 "$TOKEN_ENV_FILE"
+    log "Token disimpan di $TOKEN_ENV_FILE (chmod 600, tidak di-commit)."
+fi
+
+# shellcheck disable=SC1090
+source "$TOKEN_ENV_FILE"
+
+# ── 4. Terapkan config template ──
+log "Menyalin omp-config.template.yml -> $OMP_CONFIG_FILE"
+envsubst < omp-config.template.yml > "$OMP_CONFIG_FILE" 2>/dev/null || cp omp-config.template.yml "$OMP_CONFIG_FILE"
+
+# ── 5. Auto-load token env di shell rc (opsional, sekali saja) ──
+SHELL_RC="$HOME/.bashrc"
+[ -n "${ZSH_VERSION:-}" ] && SHELL_RC="$HOME/.zshrc"
+SOURCE_LINE="[ -f \"$TOKEN_ENV_FILE\" ] && source \"$TOKEN_ENV_FILE\""
+if ! grep -qF "$TOKEN_ENV_FILE" "$SHELL_RC" 2>/dev/null; then
+    echo "$SOURCE_LINE" >> "$SHELL_RC"
+    log "Menambahkan auto-load token ke $SHELL_RC"
+fi
+
+# ── 6. Test konektivitas ke Hindsight server ──
+HINDSIGHT_URL="$(grep -oP '(?<=apiUrl: ).*' "$OMP_CONFIG_FILE" | head -1)"
+if [ -n "$HINDSIGHT_URL" ]; then
+    log "Cek koneksi ke $HINDSIGHT_URL/health ..."
+    if curl -fsS -H "Authorization: Bearer $HINDSIGHT_API_TOKEN" "${HINDSIGHT_URL}/health" >/dev/null 2>&1; then
+        log "✅ Hindsight server terjangkau dan sehat."
+    else
+        warn "Tidak bisa reach $HINDSIGHT_URL/health — cek Tailscale aktif & server hidup di laptop 24/7."
+    fi
+else
+    warn "Tidak bisa parse apiUrl dari config. Cek isi $OMP_CONFIG_FILE secara manual."
+fi
+
+echo
+log "Setup selesai. Jalankan 'omp' di dalam folder repo untuk mulai sesi (mental model & histori akan auto-recall)."
