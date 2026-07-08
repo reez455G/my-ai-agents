@@ -146,47 +146,164 @@ bash verify.sh
 
 Hindsight sudah jalan di server lain (laptop utama, VPS, dll). Device ini hanya perlu connect. Cocok untuk:
 - Device tambahan (laptop kedua, PC kantor)
-- Shared memory antar device via Tailscale/VPN
+- Shared memory antar device
 - Tidak perlu Docker di device ini
 
-#### 1. Clone & Setup
+Ada **2 cara koneksi** ke server existing:
 
-```bash
-git clone git@github.com:reez455G/my-ai-agents.git
-cd my-ai-agents
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+#### Opsi B1: Via Tailscale (Recommended)
+
+Koneksi peer-to-peer terenkripsi tanpa expose port ke internet. Paling aman.
+
+```
+┌──────────────┐    Tailscale    ┌──────────────────┐
+│ Device Baru  │◄──────────────►│ Server Hindsight  │
+│              │   WireGuard     │ :8890 (API)       │
+│ .env:        │   encrypted     │ :9999 (Dashboard) │
+│ HINDSIGHT_   │                 │                   │
+│ API_URL=     │                 │ 100.x.x.x        │
+│ http://100.  │                 │ atau              │
+│ x.x.x:8890  │                 │ hostname.tail...  │
+└──────────────┘                 └──────────────────┘
 ```
 
-#### 2. Environment Variables
+**Di server (sekali saja):**
 
 ```bash
+# Install & login Tailscale
+curl -fsSL https://tailscale.com/install.sh | sh
+tailscale up
+
+# Catat hostname/IP
+tailscale status   # → contoh: 100.64.0.1 atau laptop-server
+```
+
+**Di device baru:**
+
+```bash
+# Install & login Tailscale (akun yang sama)
+curl -fsSL https://tailscale.com/install.sh | sh
+tailscale up
+
+# Setup .env
 cp .env.example .env
 nano .env
 ```
 
-Yang berbeda dari Mode A — **tidak perlu LLM config** (sudah dihandle server):
-
-| Variable | Contoh | Keterangan |
-|---|---|---|
-| `HINDSIGHT_API_URL` | `http://laptop-server.tail1234.ts.net:8890` | URL Hindsight di server |
-| `HINDSIGHT_API_TOKEN` | `(sama dengan token di server)` | Token autentikasi — minta dari admin server |
-
-Variable LLM (`HINDSIGHT_API_LLM_*`) bisa dikosongkan — hanya diperlukan di server yang menjalankan container.
-
-#### 3. Test Konektivitas
-
-```bash
-# Pastikan server reachable
-curl -sf http://<HOSTNAME_SERVER>:8890/health && echo "OK" || echo "Server unreachable"
-
-# Test agent
-.venv/bin/python src/agent.py
+```env
+HINDSIGHT_API_URL=http://100.64.0.1:8890          # IP Tailscale server
+# atau
+HINDSIGHT_API_URL=http://laptop-server.tail1234.ts.net:8890
+HINDSIGHT_API_TOKEN=(sama dengan token di server)
 ```
 
-#### 4. Docker Tidak Diperlukan
+```bash
+# Test
+curl -sf http://100.64.0.1:8890/health && echo "OK"
+```
 
-Di mode ini, `docker-compose.yml` tidak perlu dijalankan. Cukup `.env` yang mengarah ke server existing.
+**Kelebihan Tailscale:**
+- Peer-to-peer (tidak lewat server pihak ketiga)
+- Port tidak exposed ke internet
+- Otomatis WireGuard encryption
+- Bisa akses dashboard `:9999` langsung
+
+---
+
+#### Opsi B2: Via Cloudflare Tunnel
+
+Expose Hindsight via Cloudflare tanpa buka port di router. Bisa diakses dari mana saja.
+
+```
+┌──────────────┐                ┌───────────┐              ┌──────────────────┐
+│ Device Baru  │◄─── HTTPS ───►│ Cloudflare │◄── Tunnel ──│ Server Hindsight │
+│              │                │ CDN/Proxy  │              │ cloudflared      │
+│ .env:        │                │            │              │ :8890 (API)      │
+│ HINDSIGHT_   │                └───────────┘              └──────────────────┘
+│ API_URL=     │
+│ https://     │
+│ hindsight.   │
+│ domain.com   │
+└──────────────┘
+```
+
+**Di server:**
+
+```bash
+# Install cloudflared
+curl -fsSL https://pkg.cloudflare.com/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+
+# Login & buat tunnel
+cloudflared tunnel login
+cloudflared tunnel create hindsight
+
+# Config tunnel → file ~/.cloudflared/config.yml
+```
+
+```yaml
+# ~/.cloudflared/config.yml
+tunnel: <TUNNEL_ID>
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: hindsight.domain.com     # ganti dengan domain kamu
+    service: http://localhost:8890
+  - hostname: hindsight-ui.domain.com  # opsional: dashboard
+    service: http://localhost:9999
+  - service: http_status:404
+```
+
+```bash
+# Jalankan tunnel
+cloudflared tunnel route dns hindsight hindsight.domain.com
+cloudflared tunnel run hindsight
+
+# Atau sebagai service (auto-start)
+sudo cloudflared service install
+```
+
+**Di device baru:**
+
+```env
+HINDSIGHT_API_URL=https://hindsight.domain.com
+HINDSIGHT_API_TOKEN=(sama dengan token di server)
+```
+
+```bash
+# Test — cloudflared tidak perlu diinstall di client
+curl -sf https://hindsight.domain.com/health && echo "OK"
+```
+
+**Kelebihan Cloudflare Tunnel:**
+- Tidak perlu buka port di router/firewall
+- HTTPS otomatis (SSL by Cloudflare)
+- Bisa diakses dari internet (dengan auth)
+- Tidak perlu install apapun di client
+
+**Pertimbangan:**
+- Traffic lewat Cloudflare (bukan peer-to-peer)
+- Perlu domain yang di-manage di Cloudflare
+- Tambahkan Cloudflare Access jika ingin extra auth layer
+
+---
+
+#### Perbandingan Opsi Koneksi
+
+| | Tailscale | Cloudflare Tunnel |
+|---|---|---|
+| Install di client | ✅ Perlu | ❌ Tidak perlu |
+| Enkripsi | WireGuard (P2P) | HTTPS (via Cloudflare) |
+| Akses dari internet | ❌ Hanya Tailscale network | ✅ Dari mana saja |
+| Perlu domain | ❌ | ✅ |
+| Buka port di router | ❌ | ❌ |
+| Latensi | Rendah (P2P) | Sedang (via CDN) |
+| Dashboard `:9999` | Langsung akses | Perlu hostname tambahan |
+| Cocok untuk | Tim kecil / personal | Public API / multi-lokasi |
+
+#### Docker Tidak Diperlukan di Client
+
+Di Mode B (kedua opsi), `docker-compose.yml` tidak perlu dijalankan di device client. Cukup `.env` yang mengarah ke server existing.
 
 ---
 
