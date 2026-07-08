@@ -61,9 +61,41 @@ my-ai-agents/
         └── repo-*.md             # 23 skills dari agent-skills-repo
 ```
 
-## Quick Start
+## Deploy
 
-### 1. Clone & Setup
+Ada **2 metode deploy** — pilih salah satu sesuai kebutuhan:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     METODE DEPLOY                           │
+│                                                             │
+│   Mode A: Self-Hosted (Lokal)     Mode B: Existing Server   │
+│   ┌─────────────────────┐        ┌─────────────────────┐   │
+│   │  Device ini         │        │  Device ini         │   │
+│   │  ├── agent.py       │        │  ├── agent.py       │   │
+│   │  ├── knowledge/     │        │  ├── knowledge/     │   │
+│   │  └── Hindsight 🐳   │        │  └── .env (remote)  │   │
+│   │      localhost:8890  │        │                     │   │
+│   └─────────────────────┘        └────────┬────────────┘   │
+│                                           │                │
+│                                    ┌──────▼──────────┐     │
+│                                    │ Server Existing  │     │
+│                                    │ Hindsight 🐳     │     │
+│                                    │ host:8890        │     │
+│                                    └─────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Mode A: Self-Hosted (Hindsight Lokal)
+
+Hindsight jalan di device yang sama sebagai Docker container. Cocok untuk:
+- Laptop/PC utama yang selalu on (server 24/7)
+- Development & testing
+- Tidak tergantung koneksi internet untuk memori
+
+#### 1. Clone & Setup
 
 ```bash
 git clone git@github.com:reez455G/my-ai-agents.git
@@ -72,40 +104,113 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-### 2. Environment Variables
+#### 2. Environment Variables
 
 ```bash
 cp .env.example .env
-nano .env   # isi API key dan token
+nano .env
 ```
 
-| Variable | Keterangan |
-|---|---|
-| `HINDSIGHT_API_LLM_PROVIDER` | `openai` (untuk NVIDIA/OpenAI-compatible) |
-| `HINDSIGHT_API_LLM_API_KEY` | API key dari provider LLM |
-| `HINDSIGHT_API_LLM_BASE_URL` | Endpoint LLM (contoh: `https://integrate.api.nvidia.com/v1`) |
-| `HINDSIGHT_API_LLM_MODEL` | Model (contoh: `deepseek-ai/deepseek-v4-pro`) |
-| `HINDSIGHT_API_WORKER_ID` | Worker identity (contoh: `hindsight-prod`) |
-| `HINDSIGHT_API_URL` | URL Hindsight dari host (default: `http://localhost:8890`) |
-| `HINDSIGHT_API_TOKEN` | Token autentikasi — generate: `openssl rand -hex 32` |
+Isi semua variable:
 
-### 3. Jalankan Hindsight
+| Variable | Contoh | Keterangan |
+|---|---|---|
+| `HINDSIGHT_API_LLM_PROVIDER` | `openai` | Provider LLM (openai, anthropic, ollama, gemini, dll) |
+| `HINDSIGHT_API_LLM_API_KEY` | `nvapi-xxx` | API key provider |
+| `HINDSIGHT_API_LLM_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Endpoint LLM |
+| `HINDSIGHT_API_LLM_MODEL` | `deepseek-ai/deepseek-v4-pro` | Model yang dipakai |
+| `HINDSIGHT_API_WORKER_ID` | `hindsight-prod` | Worker identity |
+| `HINDSIGHT_API_URL` | `http://localhost:8890` | URL Hindsight dari host |
+| `HINDSIGHT_API_TOKEN` | `openssl rand -hex 32` | Token autentikasi |
+
+#### 3. Jalankan Hindsight
 
 ```bash
 docker compose up -d
+
 # Tunggu ~3-10 menit untuk startup (tergantung hardware)
-curl http://localhost:8890/health
+# Monitor:
+watch -n 10 'curl -sf http://localhost:8890/health && echo OK || echo waiting...'
 ```
 
-### 4. Test
+#### 4. Verifikasi
 
 ```bash
-# Verifikasi lengkap
+curl http://localhost:8890/health
 bash verify.sh
+```
 
-# Atau test manual
+---
+
+### Mode B: Hindsight Existing (Remote Server)
+
+Hindsight sudah jalan di server lain (laptop utama, VPS, dll). Device ini hanya perlu connect. Cocok untuk:
+- Device tambahan (laptop kedua, PC kantor)
+- Shared memory antar device via Tailscale/VPN
+- Tidak perlu Docker di device ini
+
+#### 1. Clone & Setup
+
+```bash
+git clone git@github.com:reez455G/my-ai-agents.git
+cd my-ai-agents
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+#### 2. Environment Variables
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Yang berbeda dari Mode A — **tidak perlu LLM config** (sudah dihandle server):
+
+| Variable | Contoh | Keterangan |
+|---|---|---|
+| `HINDSIGHT_API_URL` | `http://laptop-server.tail1234.ts.net:8890` | URL Hindsight di server |
+| `HINDSIGHT_API_TOKEN` | `(sama dengan token di server)` | Token autentikasi — minta dari admin server |
+
+Variable LLM (`HINDSIGHT_API_LLM_*`) bisa dikosongkan — hanya diperlukan di server yang menjalankan container.
+
+#### 3. Test Konektivitas
+
+```bash
+# Pastikan server reachable
+curl -sf http://<HOSTNAME_SERVER>:8890/health && echo "OK" || echo "Server unreachable"
+
+# Test agent
 .venv/bin/python src/agent.py
 ```
+
+#### 4. Docker Tidak Diperlukan
+
+Di mode ini, `docker-compose.yml` tidak perlu dijalankan. Cukup `.env` yang mengarah ke server existing.
+
+---
+
+### Perbandingan Mode
+
+| | Mode A: Self-Hosted | Mode B: Existing |
+|---|---|---|
+| Docker di device ini | ✅ Wajib | ❌ Tidak perlu |
+| LLM API key di `.env` | ✅ Wajib | ❌ Tidak perlu |
+| Perlu koneksi ke server | ❌ Lokal | ✅ Via Tailscale/VPN/LAN |
+| Startup time | ~3-10 menit | Instan |
+| Memori disimpan di | Device ini | Server |
+| Dashboard (port 9999) | `localhost:9999` | `<server>:9999` |
+| Cocok untuk | Server utama | Device tambahan |
+
+---
+
+### Setup via Script (kedua mode)
+
+```bash
+bash setup-new-devise.sh
+```
+
+Script akan mendeteksi mode berdasarkan `omp-config.template.yml` dan memandu setup.
 
 ## Cara Pakai OKF
 
