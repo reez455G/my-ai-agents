@@ -17,6 +17,7 @@ title: Indeks Pengetahuan
 - [Hermes Agent Framework Rules](./agent-rules/hermes-agent-agents.md)
 - [Hermes Runtime Rules](./agent-rules/hermes-agents.md)
 - [Codex Agent Rules](./agent-rules/codex-agents.md)
+- [Profil dan Instruksi Admin Miftahudin](./agent-rules/miftahudin-profile.md)
 
 ## Skills
 
