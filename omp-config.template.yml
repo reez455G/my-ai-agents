@@ -1,7 +1,7 @@
 memory:
   backend: hindsight
 hindsight:
-  apiUrl: http://<ISI_HOSTNAME_TAILSCALE_LAPTOP_SERVER>:8890
+  apiUrl: ${HINDSIGHT_API_URL}
   apiToken: ${HINDSIGHT_API_TOKEN}
   bankId: efsatu-my-ai-agents
   scoping: per-project-tagged

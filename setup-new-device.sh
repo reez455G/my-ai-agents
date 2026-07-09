@@ -76,9 +76,43 @@ fi
 # shellcheck disable=SC1090
 source "$TOKEN_ENV_FILE"
 
+if grep -q "HINDSIGHT_API_URL=" "$TOKEN_ENV_FILE"; then
+    log "HINDSIGHT_API_URL sudah ada di $TOKEN_ENV_FILE, skip input."
+else
+    read -rp "Masukkan HINDSIGHT_API_URL [https://hindsight.efsatu.my.id]: " HINDSIGHT_API_URL
+    HINDSIGHT_API_URL="${HINDSIGHT_API_URL:-https://hindsight.efsatu.my.id}"
+    echo "export HINDSIGHT_API_URL=\"$HINDSIGHT_API_URL\"" >> "$TOKEN_ENV_FILE"
+fi
+# shellcheck disable=SC1090
+source "$TOKEN_ENV_FILE"
+export HINDSIGHT_API_URL HINDSIGHT_API_TOKEN
+
 # ── 4. Terapkan config template ──
-log "Menyalin omp-config.template.yml -> $OMP_CONFIG_FILE"
-envsubst < omp-config.template.yml > "$OMP_CONFIG_FILE" 2>/dev/null || cp omp-config.template.yml "$OMP_CONFIG_FILE"
+log "Menerapkan omp-config.template.yml -> $OMP_CONFIG_FILE"
+RENDERED="$(envsubst < omp-config.template.yml)"
+if [ ! -f "$OMP_CONFIG_FILE" ]; then
+    printf '%s\n' "$RENDERED" > "$OMP_CONFIG_FILE"
+elif ! grep -q '^hindsight:' "$OMP_CONFIG_FILE"; then
+    printf '\n%s\n' "$RENDERED" >> "$OMP_CONFIG_FILE"
+else
+    warn "config.yml sudah punya blok 'hindsight:' — tidak diubah. Config hasil render:"
+    printf '%s\n' "$RENDERED"
+fi
+
+if [ ! -d .venv ]; then
+    log "Membuat venv + install dependencies..."
+    python3 -m venv .venv 2>/dev/null || {
+        python3 -m venv --without-pip .venv
+        curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+        .venv/bin/python /tmp/get-pip.py -q
+    }
+    .venv/bin/pip install -q -r requirements.txt
+fi
+if [ ! -f .env ]; then
+    log "Membuat .env dari .env.example..."
+    cp .env.example .env
+    sed -i "s|^HINDSIGHT_API_URL=.*|HINDSIGHT_API_URL=$HINDSIGHT_API_URL|; s|^HINDSIGHT_API_TOKEN=.*|HINDSIGHT_API_TOKEN=$HINDSIGHT_API_TOKEN|" .env
+fi
 
 # ── 5. Auto-load token env di shell rc (opsional, sekali saja) ──
 SHELL_RC="$HOME/.bashrc"

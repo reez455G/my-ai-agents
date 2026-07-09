@@ -34,7 +34,7 @@ my-ai-agents/
 ├── requirements.txt              # Python dependencies
 ├── .env.example                  # Template environment variables
 ├── omp-config.template.yml       # Template config untuk device baru
-├── setup-new-devise.sh           # Onboarding script device baru
+├── setup-new-device.sh           # Onboarding script device baru
 ├── verify.sh                     # Checklist verifikasi
 │
 ├── src/
@@ -324,7 +324,7 @@ Di Mode B (kedua opsi), `docker-compose.yml` tidak perlu dijalankan di device cl
 ### Setup via Script (kedua mode)
 
 ```bash
-bash setup-new-devise.sh
+bash setup-new-device.sh
 ```
 
 Script akan mendeteksi mode berdasarkan `omp-config.template.yml` dan memandu setup.
@@ -400,7 +400,7 @@ git clone git@github.com:reez455G/my-ai-agents.git
 cd my-ai-agents
 
 # Jalankan setup
-bash setup-new-devise.sh
+bash setup-new-device.sh
 ```
 
 Script akan: clone repo → setup venv → minta token → apply omp config → test konektivitas.
