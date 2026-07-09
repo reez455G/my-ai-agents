@@ -2,24 +2,27 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "=== 1. Docker Container Status ==="
-docker compose ps
+[ -f .env ] || { echo "❌ .env tidak ada — copy .env.example dan isi dulu"; exit 1; }
+set -a; source .env; set +a
+URL="${HINDSIGHT_API_URL:-http://localhost:8890}"
+BANK="${AGENT_BANK_ID:-budi}"
+
+echo "=== 1. Hindsight Runtime ==="
+case "$URL" in
+  *localhost*|*127.0.0.1*)
+    docker compose ps ;;
+  *)
+    echo "  Mode B (remote: $URL) — skip cek docker lokal" ;;
+esac
 echo
 
 echo "=== 2. Health Check ==="
-curl -sf http://localhost:8890/health && echo " ✅ Hindsight healthy" || echo " ❌ Hindsight not responding"
+curl -sf -H "Authorization: Bearer $HINDSIGHT_API_TOKEN" "$URL/health" \
+  && echo " ✅ Hindsight healthy" || echo " ❌ Hindsight not responding"
 echo
 
-echo "=== 3. Knowledge OKF Validation ==="
-.venv/bin/python -c "
-import sys; sys.path.insert(0, 'src')
-from knowledge_okf import load_all
-docs = load_all()
-ok = all(d['id'] and d['title'] for d in docs)
-print(f'  {len(docs)} docs, all valid: {ok}')
-for d in docs:
-    print(f'    - {d[\"id\"]}: {d[\"title\"]} tags={d[\"tags\"]}')
-"
+echo "=== 3. Validasi Kontrak OKF ==="
+.venv/bin/python src/validate_okf.py
 echo
 
 echo "=== 4. .env NOT tracked by git ==="
@@ -32,9 +35,13 @@ echo
 
 echo "=== 5. End-to-End Test ==="
 cd src && ../.venv/bin/python agent.py && echo "  ✅ agent.py ran OK" || echo "  ❌ agent.py failed"
+cd ..
 echo
 
 echo "=== 6. Control Plane UI ==="
-echo "  Open http://localhost:9999 in browser to check bank 'budi'"
+case "$URL" in
+  *localhost*|*127.0.0.1*) echo "  Buka http://localhost:9999 untuk cek bank '$BANK'" ;;
+  *) echo "  Dashboard ada di server Hindsight (port 9999) — cek bank '$BANK'" ;;
+esac
 echo
 echo "=== Done ==="
