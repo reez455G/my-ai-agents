@@ -403,7 +403,7 @@ cd my-ai-agents
 bash setup-new-device.sh
 ```
 
-Script akan: clone repo → setup venv → minta token → apply omp config → test konektivitas.
+Script akan: clone repo → minta token & URL → pilih bank memori omp (lanjut bank existing atau fresh) → apply omp config (non-destruktif) → setup venv + `.env` → test konektivitas.
 
 ## Port & Infra
 

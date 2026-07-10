@@ -87,6 +87,30 @@ fi
 source "$TOKEN_ENV_FILE"
 export HINDSIGHT_API_URL HINDSIGHT_API_TOKEN
 
+# ── 3b. Pilih bank memori omp: lanjut bank existing atau fresh ──
+if grep -q "HINDSIGHT_BANK_ID=" "$TOKEN_ENV_FILE"; then
+    log "HINDSIGHT_BANK_ID sudah ada di $TOKEN_ENV_FILE, skip input."
+else
+    log "Mengambil daftar bank dari $HINDSIGHT_API_URL ..."
+    BANKS_JSON="$(curl -fsS -H "Authorization: Bearer $HINDSIGHT_API_TOKEN" "$HINDSIGHT_API_URL/v1/default/banks" 2>/dev/null || true)"
+    if [ -n "$BANKS_JSON" ]; then
+        echo "Bank existing di server (pilih salah satu untuk LANJUT memori lama):"
+        printf '%s' "$BANKS_JSON" | python3 -c '
+import json, sys
+for b in json.load(sys.stdin).get("banks", []):
+    print("  - %s (%s facts, terakhir %s)" % (b["bank_id"], b.get("fact_count", 0), (b.get("updated_at") or "?")[:10]))
+' || printf '%s\n' "$BANKS_JSON"
+    else
+        warn "Tidak bisa ambil daftar bank dari server — ketik manual."
+    fi
+    read -rp "Bank ID omp (nama existing = LANJUT, nama baru = FRESH; bank dibuat otomatis saat write pertama) [my-ai-agent]: " HINDSIGHT_BANK_ID
+    HINDSIGHT_BANK_ID="${HINDSIGHT_BANK_ID:-my-ai-agent}"
+    echo "export HINDSIGHT_BANK_ID=\"$HINDSIGHT_BANK_ID\"" >> "$TOKEN_ENV_FILE"
+fi
+# shellcheck disable=SC1090
+source "$TOKEN_ENV_FILE"
+export HINDSIGHT_BANK_ID
+
 # ── 4. Terapkan config template ──
 log "Menerapkan omp-config.template.yml -> $OMP_CONFIG_FILE"
 RENDERED="$(envsubst < omp-config.template.yml)"

@@ -3,5 +3,5 @@ memory:
 hindsight:
   apiUrl: ${HINDSIGHT_API_URL}
   apiToken: ${HINDSIGHT_API_TOKEN}
-  bankId: my-ai-agent
+  bankId: ${HINDSIGHT_BANK_ID}
   scoping: per-project-tagged
