@@ -1,4 +1,5 @@
 import os
+import atexit
 from hindsight_client import Hindsight
 from dotenv import load_dotenv
 
@@ -8,6 +9,7 @@ client = Hindsight(
     base_url=os.getenv("HINDSIGHT_API_URL", "http://localhost:8890"),
     api_key=os.getenv("HINDSIGHT_API_TOKEN", ""),
 )
+atexit.register(client.close)
 
 def ingat_percakapan(bank_id: str, pesan_user: str, respon_ai: str):
     client.retain(
