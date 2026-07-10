@@ -3,5 +3,5 @@ memory:
 hindsight:
   apiUrl: ${HINDSIGHT_API_URL}
   apiToken: ${HINDSIGHT_API_TOKEN}
-  bankId: efsatu-my-ai-agents
+  bankId: my-ai-agent
   scoping: per-project-tagged
