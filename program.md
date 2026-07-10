@@ -148,3 +148,15 @@ Kontrak yang mengikat SEMUA otak (antigravity, claude, codex, glm, ...) yang ter
 3. Bank tunggal lintas-project: `AGENT_BANK_ID` (default `efsatu-my-ai-agent`) — samakan di semua device dan dengan `HINDSIGHT_BANK_ID` (dipakai `omp-config.template.yml`); scoping per-project via tag `repo:<nama>`.
 4. Kalibrasi recall via env: `HINDSIGHT_RECALL_BUDGET` (low=tercepat, mid=seimbang, high=terdalam) dan `HINDSIGHT_RECALL_MAX_TOKENS`.
 5. Semua panggilan Hindsight menelan exception → degradasi anggun ke OKF-only dengan `[WARN]`; agent tidak boleh crash karena server memori mati.
+6. Koreksi (menggantikan poin 3 di atas): bank kanonik adalah `my-ai-agent`, BUKAN `efsatu-my-ai-agent` — bank itu sudah tidak dipakai (dihapus, isinya cuma data test), digantikan `my-ai-agent` yang sudah berisi histori nyata lintas project (9 mental model, dipakai omp sejak awal).
+7. Koreksi susulan atas poin 6: eksekusi plan re-verifikasi `efsatu-my-ai-agent` sebelum delete (2026-07-10) menemukan bank itu TIDAK kosong lagi (2 entry `skill-catalog` baru, mental model `project-status` masih ada) — bank BATAL dihapus sesuai kontrak abort-on-unexpected-content di plan, hanya migrasi konfigurasi (`AGENT_BANK_ID`/`HINDSIGHT_BANK_ID` → `my-ai-agent`) yang dieksekusi. Bank lama masih ada di disk, tidak lagi menerima tulisan baru dari konfigurasi manapun.
+
+---
+
+## 9. Sinkronisasi Skill Lintas-Device
+
+`~/.omp/agent/managed-skills/` (dibuat oleh tool `manage_skill`) adalah direktori lokal, tidak di-git-track, dan tidak punya mekanisme sync — device baru yang di-clone dari repo ini tidak akan punya skill tersebut sama sekali. Solusinya: `.omp/skills/<name>/SKILL.md` di-git-track dan otomatis di-scan oleh native skill provider omp.
+
+1. `.omp/skills/<name>/SKILL.md` di-git-track dan auto-discovered oleh native provider omp (prioritas tertinggi, 100) setiap kali `omp` dijalankan dari dalam repo ini atau subdirektorinya — tidak perlu perubahan config apapun.
+2. `sync-skills.sh` (di root repo) wajib dijalankan setiap kali selesai `manage_skill create`/`update`, lalu hasilnya di-commit dan di-push — karena tool itu hanya pernah menulis ke `~/.omp/agent/managed-skills` lokal, tidak pernah langsung ke `.omp/skills/`.
+3. Entry dengan nama sama di `.omp/skills/` selalu menang dibanding salinan lokal basi di `~/.omp/agent/managed-skills` (prioritas native provider 100 mengalahkan prioritas provider `omp-managed` 5), jadi `git pull` di device manapun selalu memberi versi terbaru.
