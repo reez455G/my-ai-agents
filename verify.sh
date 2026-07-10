@@ -33,11 +33,6 @@ else
 fi
 echo
 
-echo "=== 5. End-to-End Test ==="
-cd src && ../.venv/bin/python agent.py && echo "  ✅ agent.py ran OK" || echo "  ❌ agent.py failed"
-cd ..
-echo
-
 echo "=== 6. Control Plane UI ==="
 case "$URL" in
   *localhost*|*127.0.0.1*) echo "  Buka http://localhost:9999 untuk cek bank '$BANK'" ;;
