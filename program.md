@@ -114,3 +114,11 @@ tarik_ingatan_lama(bank_id, "kapan terakhir pakai skill docker?")
 - Menambah agent rules = drop file `.md` baru ke `knowledge/agent-rules/` + daftarkan di `index.md`.
 - Tidak perlu mengubah kode `knowledge_okf.py` — loader otomatis scan semua `*.md` di `knowledge/`.
 - Format frontmatter yang konsisten memungkinkan pencarian lintas modul via `cari_by_tag()` dan `cari_by_id()`.
+
+---
+
+## 7. Validasi Kontrak (ditambahkan 2026-07-10)
+
+- `src/validate_okf.py` menegakkan §2 & §5: frontmatter wajib, id unik, registrasi di `knowledge/index.md`. Dijalankan otomatis oleh `verify.sh`.
+- `index.md` dikecualikan dari `tags`/`source`/`imported_at` (berfungsi sebagai indeks).
+- File pra-kontrak `panduan_layanan.md` dan `skema_database.md` di-grandfather (tanpa `source`/`imported_at`) karena §5.1 melarang edit frontmatter existing. Semua file baru wajib frontmatter lengkap.
