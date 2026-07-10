@@ -24,3 +24,11 @@ def cari_by_id(doc_id: str):
         if d["id"] == doc_id:
             return d
     return None
+
+def catalog_skills() -> list[dict]:
+    return [{"id": d["id"], "title": d["title"], "tags": d["tags"]}
+            for d in cari_by_tag("skill")]
+
+
+def get_profile() -> dict | None:
+    return cari_by_id("miftahudin-profile")

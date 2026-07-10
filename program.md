@@ -122,3 +122,29 @@ tarik_ingatan_lama(bank_id, "kapan terakhir pakai skill docker?")
 - `src/validate_okf.py` menegakkan §2 & §5: frontmatter wajib, id unik, registrasi di `knowledge/index.md`. Dijalankan otomatis oleh `verify.sh`.
 - `index.md` dikecualikan dari `tags`/`source`/`imported_at` (berfungsi sebagai indeks).
 - File pra-kontrak `panduan_layanan.md` dan `skema_database.md` di-grandfather (tanpa `source`/`imported_at`) karena §5.1 melarang edit frontmatter existing. Semua file baru wajib frontmatter lengkap.
+
+---
+
+## 8. Protokol Memori Lintas-Otak
+
+Kontrak yang mengikat SEMUA otak (antigravity, claude, codex, glm, ...) yang terpasang via omp.
+
+### Taksonomi Tag (Hindsight)
+
+| Tag | Arti |
+|---|---|
+| `brain:<id>` | Otak yang menulis memori (dari env `AGENT_BRAIN_ID`) |
+| `device:<hostname>` | Device/PC tempat memori ditulis (`socket.gethostname()`) |
+| `session-snapshot` | Snapshot state akhir sesi (ditulis otomatis saat exit) |
+| `skill-usage` | Catatan pemakaian skill di suatu repo |
+| `skill:<id>` | Skill spesifik yang dipakai (id dari frontmatter OKF) |
+| `repo:<nama>` | Repo/workflow tempat skill dipakai |
+| `skill-catalog` | Katalog skill OKF yang tersedia (di-replace tiap startup) |
+
+### Aturan
+
+1. **Content selalu kalimat natural** — identitas (brain, device, session, timestamp) masuk `metadata=`/`tags=`, BUKAN JSON di dalam content. JSON di content mengotori ekstraksi fakta LLM Hindsight.
+2. Env `AGENT_BRAIN_ID` **wajib di-set oleh otak yang terpasang** (fallback `unknown` tetap berfungsi tapi memori kehilangan atribusi otak).
+3. Bank tunggal lintas-project: `AGENT_BANK_ID` (default `efsatu-my-ai-agent`) — samakan di semua device dan dengan `HINDSIGHT_BANK_ID` (dipakai `omp-config.template.yml`); scoping per-project via tag `repo:<nama>`.
+4. Kalibrasi recall via env: `HINDSIGHT_RECALL_BUDGET` (low=tercepat, mid=seimbang, high=terdalam) dan `HINDSIGHT_RECALL_MAX_TOKENS`.
+5. Semua panggilan Hindsight menelan exception → degradasi anggun ke OKF-only dengan `[WARN]`; agent tidak boleh crash karena server memori mati.

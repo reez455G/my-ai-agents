@@ -1,10 +1,25 @@
+import atexit
 import json
 import os
 import urllib.error
 import urllib.request
 
-from knowledge_okf import cari_by_tag
-from memory_hindsight import ingat_percakapan, tarik_ingatan_lama
+import memory_hindsight
+from memory_hindsight import (
+    get_brain_id,
+    get_device_id,
+    new_session_id,
+    ingat_percakapan,
+    ingat_kejadian,
+    tarik_ingatan_lama,
+    reflect_ingatan,
+    pastikan_profil_bank,
+    pastikan_mental_model,
+)
+from knowledge_okf import cari_by_tag, catalog_skills, get_profile
+
+_SESSION = {"id": None, "bank_id": None, "interacted": False}
+_finalized = False
 
 
 def panggil_llm(prompt: str) -> str | None:
@@ -33,25 +48,85 @@ def panggil_llm(prompt: str) -> str | None:
     return body["choices"][0]["message"]["content"]
 
 
-def proses_pesan(bank_id: str, pesan: str, tag: str | None = None) -> str:
-    tag = tag or os.getenv("AGENT_OKF_TAG", "refund")
+def init_session(bank_id: str) -> str:
+    session_id = new_session_id()
+    _SESSION["id"] = session_id
+    _SESSION["bank_id"] = bank_id
 
-    # 1. Ingatan dinamis (Hindsight)
-    try:
-        konteks_dinamis = tarik_ingatan_lama(bank_id, pesan)
-    except Exception as e:
-        print(f"[WARN] recall gagal (bank mungkin belum ada): {e}")
-        konteks_dinamis = []
+    # Profil tertanam: semua otak memakai profil yang sama via reflect_mission
+    p = get_profile()
+    if p:
+        pastikan_profil_bank(bank_id, p["content"])
 
-    # 2. Pengetahuan statis (OKF)
-    konteks_statis = cari_by_tag(tag)
+    pastikan_mental_model(bank_id)
 
-    # 3. Prompt gabungan → LLM
+    # Katalog skill OKF → Hindsight (replace agar tidak menumpuk tiap startup)
+    skills = catalog_skills()
+    ingat_kejadian(
+        bank_id,
+        content="Katalog skill tersedia: " + ", ".join(s["id"] for s in skills),
+        tags=["skill-catalog"],
+        document_id="skill-catalog",
+        update_mode="replace",
+        context="katalog skill OKF",
+    )
+
+    last = tarik_ingatan_lama(
+        bank_id, "status dan task terakhir sesi sebelumnya", tags=["session-snapshot"]
+    )
+
+    memori_status = "OK" if memory_hindsight.HINDSIGHT_OK else "DEGRADED (OKF-only)"
+    print("=== Agent Status Report ===")
+    print(f"Brain      : {get_brain_id()}")
+    print(f"Device     : {get_device_id()}")
+    print(f"Session    : {session_id}")
+    print(f"Skills OKF : {len(skills)}")
+    print(f"Agent rules: {len(cari_by_tag('agent-rules'))}")
+    print(f"Sesi lalu  : {last[0] if last else 'Tidak ada sesi sebelumnya'}")
+    print(f"Memori     : {memori_status}")
+    print("===========================")
+
+    atexit.register(finalize_session)
+    return session_id
+
+
+def finalize_session() -> None:
+    global _finalized
+    if _finalized or not _SESSION["interacted"]:
+        return
+    _finalized = True
+    bank_id = _SESSION["bank_id"]
+    ringkasan = reflect_ingatan(
+        bank_id,
+        "Ringkas status project saat ini: task yang dikerjakan sesi ini, "
+        "hasilnya, dan langkah berikutnya",
+    )
+    ingat_kejadian(
+        bank_id,
+        content=f"Snapshot akhir sesi {_SESSION['id']}: {ringkasan}",
+        tags=["session-snapshot"],
+        document_id=f"session-{_SESSION['id']}",
+        context="state snapshot akhir sesi",
+    )
+
+
+def proses_pesan(bank_id: str, pesan: str) -> str:
+    _SESSION["interacted"] = True
+
+    # 1. Ingatan dinamis (Hindsight) — pencarian umum tanpa filter tag
+    konteks_dinamis = tarik_ingatan_lama(bank_id, pesan)
+
+    # 2. Pengetahuan statis (OKF): judul skill + profil
+    judul_skill = [d["title"] for d in cari_by_tag("skill")]
+    profil = get_profile()
+
     prompt = f"""
+Profil agent: {profil['content'] if profil else '(tidak ada)'}
 Ingatan sebelumnya: {konteks_dinamis}
-Kebijakan resmi: {[d['content'] for d in konteks_statis]}
+Skill tersedia: {judul_skill}
 Pertanyaan user: {pesan}
 """
+    # 3. LLM sungguhan (stdlib, OpenAI-compatible) — None jika belum dikonfigurasi
     try:
         respon = panggil_llm(prompt)
     except urllib.error.HTTPError as e:
@@ -63,14 +138,16 @@ Pertanyaan user: {pesan}
                 "AGENT_LLM_MODEL, AGENT_LLM_API_KEY di .env]")
 
     # 4. Simpan ingatan baru (hanya respons asli, bukan pesan error/placeholder)
-    try:
-        ingat_percakapan(bank_id, pesan, respon)
-    except Exception as e:
-        print(f"[WARN] retain gagal (cek koneksi/token Hindsight di .env): {e}")
+    ingat_percakapan(bank_id, pesan, respon, session_id=_SESSION["id"])
 
     return respon
 
 
 if __name__ == "__main__":
-    bank = os.getenv("AGENT_BANK_ID", "budi")
-    print(proses_pesan(bank_id=bank, pesan="Bagaimana cara refund?"))
+    bank_id = os.getenv("AGENT_BANK_ID", "efsatu-my-ai-agent")
+    init_session(bank_id)
+    print(proses_pesan(bank_id, "Apa status project dan skill apa yang tersedia?"))
+    # Eksplisit: atexit terlalu larut untuk I/O jaringan (executor asyncio sudah
+    # shutdown saat interpreter teardown); atexit tetap terdaftar sebagai jaring
+    # pengaman dan idempoten via _finalized.
+    finalize_session()
