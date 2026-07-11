@@ -157,11 +157,18 @@ fi
 # ── 5b. Tambahkan alias 'omp' agar auto git-pull skill terbaru sebelum start (opsional, sekali saja) ──
 OMP_BIN="$(command -v omp || echo omp)"
 ALIAS_LINE="alias omp=\"(cd $PWD && git pull origin main -q && $OMP_BIN; ./sync-skills.sh)\""
-if ! grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
+if grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
+    if grep -qF "$ALIAS_LINE" "$SHELL_RC" 2>/dev/null; then
+        log "Alias 'omp' sudah terpasang dan up-to-date di $SHELL_RC"
+    else
+        log "Mendeteksi versi alias 'omp' lama/berbeda di $SHELL_RC. Memperbarui..."
+        grep -v "alias omp=" "$SHELL_RC" > "$SHELL_RC.tmp" && mv "$SHELL_RC.tmp" "$SHELL_RC"
+        echo "$ALIAS_LINE" >> "$SHELL_RC"
+        log "Alias 'omp' berhasil diperbarui di $SHELL_RC"
+    fi
+else
     echo "$ALIAS_LINE" >> "$SHELL_RC"
     log "Menambahkan alias 'omp' (auto-pull sebelum start & auto-push setelah exit) ke $SHELL_RC"
-else
-    warn "Alias 'omp' sudah ada di $SHELL_RC, skip (cek manual jika path repo/binary berubah)."
 fi
 
 # ── 6. Test konektivitas ke Hindsight server ──
