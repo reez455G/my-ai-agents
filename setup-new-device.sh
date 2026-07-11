@@ -156,7 +156,7 @@ fi
 
 # ── 5b. Tambahkan alias 'omp' agar auto git-pull skill terbaru sebelum start (opsional, sekali saja) ──
 OMP_BIN="$(type -P omp || echo "$HOME/.bun/bin/omp")"
-ALIAS_LINE="alias omp=\"(cd $PWD && git pull origin main -q && $OMP_BIN; ./sync-skills.sh)\""
+ALIAS_LINE="alias omp=\"(cd $PWD && git pull origin main -q && $OMP_BIN && ./sync-skills.sh)\""
 if grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
     if grep -qF "$ALIAS_LINE" "$SHELL_RC" 2>/dev/null; then
         log "Alias 'omp' sudah terpasang dan up-to-date di $SHELL_RC"
