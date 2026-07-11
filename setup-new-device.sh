@@ -147,6 +147,16 @@ if ! grep -qF "$TOKEN_ENV_FILE" "$SHELL_RC" 2>/dev/null; then
     log "Menambahkan auto-load token ke $SHELL_RC"
 fi
 
+# ── 5b. Tambahkan alias 'omp' agar auto git-pull skill terbaru sebelum start (opsional, sekali saja) ──
+OMP_BIN="$(command -v omp || echo omp)"
+ALIAS_LINE="alias omp=\"cd $PWD && git pull origin main -q && $OMP_BIN\""
+if ! grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
+    echo "$ALIAS_LINE" >> "$SHELL_RC"
+    log "Menambahkan alias 'omp' (auto git pull skill sebelum start) ke $SHELL_RC"
+else
+    warn "Alias 'omp' sudah ada di $SHELL_RC, skip (cek manual jika path repo/binary berubah)."
+fi
+
 # ── 6. Test konektivitas ke Hindsight server ──
 HINDSIGHT_URL="$(grep -oP '(?<=apiUrl: ).*' "$OMP_CONFIG_FILE" | head -1)"
 if [ -n "$HINDSIGHT_URL" ]; then
