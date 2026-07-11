@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
-# sync-skills.sh — copy ~/.omp/agent/managed-skills/* into .omp/skills/ so they
-# sync to other devices via plain `git clone`/`pull`. Run after every
-# manage_skill create/update, then commit + push.
+# sync-skills.sh — full .omp/skills/ sync + commit (program.md §9/§11):
+#   1. ~/.omp/agent/managed-skills/* -> .omp/skills/  (manage_skill output)
+#   2. knowledge/{skills,agent-rules}/*.md -> .omp/skills/ for embedded-class
+#      sources only (sync-okf-skills.py; bare-class sources are never touched)
+# Run after every manage_skill create/update, or after editing knowledge/.
 set -euo pipefail
 cd "$(dirname "$0")"
 SRC="$HOME/.omp/agent/managed-skills"
 DEST=".omp/skills"
 [ -d "$SRC" ] || { echo "Tidak ada managed-skills di $SRC"; exit 0; }
 mkdir -p "$DEST"
+MANIFEST="$DEST/.managed-skill-names"
+: > "$MANIFEST.tmp"
 for d in "$SRC"/*/; do
     name="$(basename "$d")"
     [ -f "$d/SKILL.md" ] || continue
     mkdir -p "$DEST/$name"
     cp "$d/SKILL.md" "$DEST/$name/SKILL.md"
+    echo "$name" >> "$MANIFEST.tmp"
     echo "synced: $name"
 done
+sort -u "$MANIFEST.tmp" > "$MANIFEST" && rm -f "$MANIFEST.tmp"
+
+echo "--- knowledge/ -> .omp/skills/ (embedded-class only) ---"
+python3 sync-okf-skills.py
 
 if [ -n "$(git status --porcelain .omp/skills)" ]; then
     git add .omp/skills

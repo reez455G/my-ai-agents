@@ -138,6 +138,13 @@ if [ ! -f .env ]; then
     sed -i "s|^HINDSIGHT_API_URL=.*|HINDSIGHT_API_URL=$HINDSIGHT_API_URL|; s|^HINDSIGHT_API_TOKEN=.*|HINDSIGHT_API_TOKEN=$HINDSIGHT_API_TOKEN|" .env
 fi
 
+# ── 4b. Pasang git hooks + import skill ke managed-skills lokal (aman diulang) ──
+log "Memasang git hooks (core.hooksPath -> githooks/) agar 'git pull' otomatis meng-import skill baru..."
+git config core.hooksPath githooks
+chmod +x githooks/post-merge githooks/post-checkout import-learned-skills.sh sync-skills.sh sync-okf-skills.py 2>/dev/null || true
+log "Import awal skill repo -> ~/.omp/agent/managed-skills (skill lokal yang sudah ada tidak akan ditimpa)..."
+./import-learned-skills.sh
+
 # ── 5. Auto-load token env di shell rc (opsional, sekali saja) ──
 SHELL_RC="$HOME/.bashrc"
 [ -n "${ZSH_VERSION:-}" ] && SHELL_RC="$HOME/.zshrc"
