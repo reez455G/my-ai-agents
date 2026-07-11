@@ -160,3 +160,11 @@ Kontrak yang mengikat SEMUA otak (antigravity, claude, codex, glm, ...) yang ter
 1. `.omp/skills/<name>/SKILL.md` di-git-track dan auto-discovered oleh native provider omp (prioritas tertinggi, 100) setiap kali `omp` dijalankan dari dalam repo ini atau subdirektorinya — tidak perlu perubahan config apapun.
 2. `sync-skills.sh` (di root repo) wajib dijalankan setiap kali selesai `manage_skill create`/`update`, lalu hasilnya di-commit dan di-push — karena tool itu hanya pernah menulis ke `~/.omp/agent/managed-skills` lokal, tidak pernah langsung ke `.omp/skills/`.
 3. Entry dengan nama sama di `.omp/skills/` selalu menang dibanding salinan lokal basi di `~/.omp/agent/managed-skills` (prioritas native provider 100 mengalahkan prioritas provider `omp-managed` 5), jadi `git pull` di device manapun selalu memberi versi terbaru.
+
+---
+
+## 10. Koreksi Susulan (2026-07-11): §3 Superseded, Migrasi ke `.omp/skills/`
+
+1. **§3 "Cara Query di agent.py" sudah usang.** `agent.py`, `knowledge_okf.py`, dan `memory_hindsight.py` dihapus dari repo ini (digantikan eksekusi native OMP — lihat §9). Fungsi `cari_by_tag()`/`tarik_ingatan_lama()` yang dicontohkan di §3 tidak lagi ada; jangan diikuti sebagai kode aktif.
+2. Seluruh isi `knowledge/` (34 file: 27 skill + 7 agent-rules) sudah dimigrasikan/disalin ke `.omp/skills/<name>/SKILL.md` agar bisa di-scan native oleh `omp` (mekanisme sama seperti §9, prioritas provider 100). `knowledge/` tetap dipertahankan sebagai arsip sumber append-only (kontrak §5 tetap berlaku di sana) — `.omp/skills/` adalah salinan siap-pakai untuk konsumsi native, bukan pengganti arsip.
+3. **Belum ada mekanisme otomatis** yang menyalin penambahan baru di `knowledge/skills/` atau `knowledge/agent-rules/` ke `.omp/skills/` (beda dengan `sync-skills.sh` yang meng-cover `~/.omp/agent/managed-skills/`). Setiap kali menambah file OKF baru di `knowledge/`, salin juga manual ke `.omp/skills/<name>/SKILL.md` agar konsisten dengan §9 poin 3, atau perluas `sync-skills.sh` untuk meng-cover kedua sumber.
