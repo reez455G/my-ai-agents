@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 [ -f .env ] || { echo "❌ .env tidak ada — copy .env.example dan isi dulu"; exit 1; }
 set -a; source .env; set +a
 URL="${HINDSIGHT_API_URL:-http://localhost:8890}"
-BANK="${AGENT_BANK_ID:-budi}"
+BANK="$AGENT_BANK_ID"
 
 echo "=== 1. Hindsight Runtime ==="
 case "$URL" in
@@ -33,7 +33,7 @@ else
 fi
 echo
 
-echo "=== 6. Control Plane UI ==="
+echo "=== 5. Control Plane UI ==="
 case "$URL" in
   *localhost*|*127.0.0.1*) echo "  Buka http://localhost:9999 untuk cek bank '$BANK'" ;;
   *) echo "  Dashboard ada di server Hindsight (port 9999) — cek bank '$BANK'" ;;

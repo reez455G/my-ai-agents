@@ -1,19 +1,20 @@
 # my-ai-agents
 
-Aplikasi modular AI agent dengan **dual memory system**: pengetahuan statis (OKF) + memori dinamis (Hindsight).
+Konfigurasi + basis pengetahuan statis untuk **OMP (Oh My Pi)**, dengan **dual memory system**: pengetahuan statis (OKF + native skills) dan memori dinamis (Hindsight).
 
 ```
 ┌──────────────────────────────────────────────────┐
 │                  my-ai-agents                    │
 │                                                  │
-│   📚 OKF (knowledge/)          💭 Hindsight      │
-│   Pengetahuan & Skills         Memori Percakapan │
-│   ─ Agent rules                ─ retain()        │
-│   ─ Skills library             ─ recall()        │
-│   ─ Domain knowledge           ─ reflect()       │
+│   📚 .omp/skills/               💭 Hindsight      │
+│   Native skill discovery       Memori Percakapan │
+│   ─ auto-scanned oleh omp      ─ retain()        │
+│   ─ 1 SKILL.md per folder      ─ recall()        │
+│   ─ prioritas tertinggi (100)  ─ reflect()       │
 │                                                  │
-│   🤖 agent.py                                    │
-│   Gabungkan keduanya → respons cerdas            │
+│   knowledge/ (OKF, append-only archive)          │
+│   Sumber kebenaran; sync-skills.sh & migrasi     │
+│   manual menyalin isinya ke .omp/skills/         │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -21,9 +22,11 @@ Aplikasi modular AI agent dengan **dual memory system**: pengetahuan statis (OKF
 
 | Komponen | Fungsi | Sifat |
 |---|---|---|
-| **OKF** (`knowledge/`) | Pengetahuan statis — rules, skills, kebijakan | Append-only, versioned di git |
-| **Hindsight** (Docker) | Memori dinamis — percakapan, keputusan, konteks | Semantik, auto-learn via LLM |
-| **agent.py** | Orkestrasi — query OKF + recall Hindsight → prompt LLM | Stateless, pluggable |
+| **`.omp/skills/`** | Skill/rules siap pakai — auto-discovered native oleh `omp` | Git-tracked, prioritas provider tertinggi (100) |
+| **OKF** (`knowledge/`) | Arsip sumber pengetahuan statis — rules, skills, kebijakan | Append-only, versioned di git |
+| **Hindsight** (Docker/remote) | Memori dinamis — percakapan, keputusan, konteks | Semantik, auto-learn via LLM, native ke `omp` (`recall`/`retain`/`reflect`) |
+
+Eksekusi LLM dan orkestrasi ditangani native oleh runtime `omp` — tidak ada lagi agen Python custom di repo ini.
 
 ## Struktur Direktori
 
@@ -31,28 +34,30 @@ Aplikasi modular AI agent dengan **dual memory system**: pengetahuan statis (OKF
 my-ai-agents/
 ├── program.md                    # Kontrak arsitektur (append-only)
 ├── docker-compose.yml            # Hindsight server
-├── requirements.txt              # Python dependencies
+├── requirements.txt              # Python dependencies (validate_okf.py saja)
 ├── .env.example                  # Template environment variables
 ├── omp-config.template.yml       # Template config untuk device baru
 ├── setup-new-device.sh           # Onboarding script device baru
+├── sync-skills.sh                # Sync managed-skills lokal -> .omp/skills/
 ├── verify.sh                     # Checklist verifikasi
 │
 ├── src/
-│   ├── agent.py                  # Main agent — gabungkan OKF + Hindsight
-│   ├── knowledge_okf.py          # OKF loader (auto-scan knowledge/*.md)
-│   └── memory_hindsight.py       # Hindsight client (retain/recall/reflect)
+│   └── validate_okf.py           # Validator kontrak OKF (knowledge/*.md)
 │
-└── knowledge/                    # OKF Knowledge Base (append-only!)
+├── .omp/skills/                  # 40 files — native-discovered skills (agent-troubleshoot, meridian, dst.)
+│
+└── knowledge/                    # OKF Knowledge Base — arsip sumber (append-only!)
     ├── index.md                  # Indeks semua knowledge
     ├── panduan_layanan.md        # Domain: kebijakan layanan
     ├── skema_database.md         # Domain: referensi teknis
-    ├── agent-rules/              # 6 files — konvensi dari berbagai project
+    ├── agent-rules/              # 7 files — konvensi dari berbagai project
     │   ├── meridian-claude.md
     │   ├── hermes-agent-agents.md
     │   ├── hermes-agents.md
     │   ├── agent-skills-repo-agents.md
     │   ├── agent-skills-repo-claude.md
-    │   └── codex-agents.md
+    │   ├── codex-agents.md
+    │   └── miftahudin-profile.md
     └── skills/                   # 27 files — skill library
         ├── meridian.md
         ├── poly-engine-fullstack.md
@@ -329,30 +334,15 @@ bash setup-new-device.sh
 
 Script akan mendeteksi mode berdasarkan `omp-config.template.yml` dan memandu setup.
 
-## Cara Pakai OKF
+## Cara Pakai Skill/OKF
 
-### Query Knowledge
+### Pakai skill yang sudah ada
 
-```python
-from knowledge_okf import load_all, cari_by_tag, cari_by_id
+Skill di `.omp/skills/<name>/SKILL.md` otomatis di-scan native oleh `omp` (prioritas tertinggi, 100) begitu `omp` dijalankan dari dalam repo ini atau subdirektorinya — tidak perlu import Python apa pun. Cukup jalankan `omp` dan minta sesuatu yang relevan; skill yang cocok otomatis dimuat ke context.
 
-# Semua dokumen
-load_all()                        # → 36 docs
+### Tambah skill/knowledge baru
 
-# By tag
-cari_by_tag("skill")              # → 27 skills
-cari_by_tag("agent-rules")        # → 6 rules
-cari_by_tag("meridian")           # → 2 docs (rules + skill)
-cari_by_tag("testing")            # → TDD, browser-testing
-cari_by_tag("security")           # → security-and-hardening
-
-# By ID
-cari_by_id("skill-meridian")      # → 1 doc langsung
-```
-
-### Tambah Knowledge Baru
-
-Drop file `.md` baru ke `knowledge/skills/` atau `knowledge/agent-rules/` dengan frontmatter:
+1. Drop file `.md` baru ke `knowledge/skills/` atau `knowledge/agent-rules/` dengan frontmatter OKF, diikuti frontmatter native SKILL.md:
 
 ```markdown
 ---
@@ -363,25 +353,20 @@ source: ~/path/ke/file/asli
 imported_at: 2026-07-07
 ---
 
+---
+name: nama-skill
+description: Deskripsi satu kalimat + kapan dipakai.
+---
+
 # Konten skill di sini...
 ```
 
-Lalu daftarkan di `knowledge/index.md`. Tidak perlu ubah kode — `knowledge_okf.py` auto-scan semua `*.md`.
+2. Daftarkan di `knowledge/index.md` (kontrak append-only, lihat `program.md` §5).
+3. Salin isinya (tanpa frontmatter OKF terluar) ke `.omp/skills/<nama-skill>/SKILL.md` supaya `omp` bisa langsung men-scan-nya secara native (lihat `program.md` §9).
 
 ## Cara Pakai Hindsight
 
-```python
-from memory_hindsight import ingat_percakapan, tarik_ingatan_lama, reflect_ingatan
-
-# Simpan memori
-ingat_percakapan("bank-user", "pertanyaan user", "respons agent")
-
-# Recall memori relevan
-tarik_ingatan_lama("bank-user", "kata kunci")
-
-# Refleksi — simpulkan pola dari banyak memori
-reflect_ingatan("bank-user", "apa pola pertanyaan user?")
-```
+Hindsight dipakai native oleh `omp` lewat tool bawaan `recall`/`retain`/`reflect`/`learn` — tidak ada API Python custom lagi. Konfigurasi ada di `~/.omp/agent/config.yml` (`hindsight.apiUrl`, `hindsight.bankId`, dst., lihat `omp-config.template.yml`).
 
 ## Kontrak Append-Only
 
@@ -416,11 +401,11 @@ Script akan: clone repo → minta token & URL → pilih bank memori omp (lanjut 
 
 ```bash
 # Backup volume Hindsight
-docker run --rm -v my-ai-agent_hindsight-data:/data -v $(pwd):/backup alpine \
+docker run --rm -v my-ai-agents_hindsight-data:/data -v $(pwd):/backup alpine \
   tar czf /backup/hindsight-backup-$(date +%F).tar.gz /data
 
 # Restore
-docker run --rm -v my-ai-agent_hindsight-data:/data -v $(pwd):/backup alpine \
+docker run --rm -v my-ai-agents_hindsight-data:/data -v $(pwd):/backup alpine \
   tar xzf /backup/hindsight-backup-YYYY-MM-DD.tar.gz -C /
 
 # Knowledge base

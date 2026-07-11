@@ -14,6 +14,7 @@ for d in "$SRC"/*/; do
     mkdir -p "$DEST/$name"
     cp "$d/SKILL.md" "$DEST/$name/SKILL.md"
     echo "synced: $name"
+done
 
 if [ -n "$(git status --porcelain .omp/skills)" ]; then
     git add .omp/skills
