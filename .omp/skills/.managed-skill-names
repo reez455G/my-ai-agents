@@ -1,6 +1,7 @@
 agent-troubleshoot
 fix-bashrc-compatibility
 hindsight-llm-model-switch
+office-cli
 okf-to-native-skill-migration
 omp-fresh-device-simulation-testing
 openai-gateway-model-probe
