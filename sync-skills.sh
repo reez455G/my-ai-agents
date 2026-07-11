@@ -14,5 +14,12 @@ for d in "$SRC"/*/; do
     mkdir -p "$DEST/$name"
     cp "$d/SKILL.md" "$DEST/$name/SKILL.md"
     echo "synced: $name"
-done
-echo "Selesai. Review lalu: git add .omp/skills && git commit -m 'sync managed skills' && git push"
+
+if [ -n "$(git status --porcelain .omp/skills)" ]; then
+    git add .omp/skills
+    git commit -m "Auto-sync managed skills [$(date -u +"%Y-%m-%dT%H:%M:%SZ")]"
+    git push origin main
+    echo "Successfully pushed new skills to origin/main"
+else
+    echo "No changes detected in .omp/skills, nothing to push."
+fi
