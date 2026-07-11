@@ -51,4 +51,3 @@ title: Indeks Pengetahuan
 - [Spec-Driven Development](./skills/repo-spec-driven-development.md)
 - [Test-Driven Development](./skills/repo-test-driven-development.md)
 - [Using Agent Skills](./skills/repo-using-agent-skills.md)
-- [Gate C Dummy (temporary test file)](./skills/repo-gate-c-dummy.md)
