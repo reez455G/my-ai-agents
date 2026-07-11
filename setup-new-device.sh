@@ -155,7 +155,7 @@ if ! grep -qF "$TOKEN_ENV_FILE" "$SHELL_RC" 2>/dev/null; then
 fi
 
 # ── 5b. Tambahkan alias 'omp' agar auto git-pull skill terbaru sebelum start (opsional, sekali saja) ──
-OMP_BIN="$(command -v omp || echo omp)"
+OMP_BIN="$(type -P omp || echo "$HOME/.bun/bin/omp")"
 ALIAS_LINE="alias omp=\"(cd $PWD && git pull origin main -q && $OMP_BIN; ./sync-skills.sh)\""
 if grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
     if grep -qF "$ALIAS_LINE" "$SHELL_RC" 2>/dev/null; then
