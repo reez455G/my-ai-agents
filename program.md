@@ -168,3 +168,43 @@ Kontrak yang mengikat SEMUA otak (antigravity, claude, codex, glm, ...) yang ter
 1. **§3 "Cara Query di agent.py" sudah usang.** `agent.py`, `knowledge_okf.py`, dan `memory_hindsight.py` dihapus dari repo ini (digantikan eksekusi native OMP — lihat §9). Fungsi `cari_by_tag()`/`tarik_ingatan_lama()` yang dicontohkan di §3 tidak lagi ada; jangan diikuti sebagai kode aktif.
 2. Seluruh isi `knowledge/` (34 file: 27 skill + 7 agent-rules) sudah dimigrasikan/disalin ke `.omp/skills/<name>/SKILL.md` agar bisa di-scan native oleh `omp` (mekanisme sama seperti §9, prioritas provider 100). `knowledge/` tetap dipertahankan sebagai arsip sumber append-only (kontrak §5 tetap berlaku di sana) — `.omp/skills/` adalah salinan siap-pakai untuk konsumsi native, bukan pengganti arsip.
 3. **Belum ada mekanisme otomatis** yang menyalin penambahan baru di `knowledge/skills/` atau `knowledge/agent-rules/` ke `.omp/skills/` (beda dengan `sync-skills.sh` yang meng-cover `~/.omp/agent/managed-skills/`). Setiap kali menambah file OKF baru di `knowledge/`, salin juga manual ke `.omp/skills/<name>/SKILL.md` agar konsisten dengan §9 poin 3, atau perluas `sync-skills.sh` untuk meng-cover kedua sumber.
+
+---
+
+## 11. Desain Sinkronisasi Otomatis Penuh (Fase 1, 2026-07-11)
+
+Menyelesaikan gap di §10 poin 3. Ditulis SEBELUM implementasi (kontrak Fase 1 tugas plug&play), berdasarkan audit Fase 0 yang mengoreksi dua asumsi:
+
+### 11.1 Koreksi asumsi dari brief tugas
+
+- **`.omp/` SUDAH ter-track penuh di `origin/main`** (diverifikasi via `git ls-tree` lokal DAN GitHub REST API langsung, commit `c31974b`) — klaim sebaliknya di brief tugas keliru.
+- **`setup-new-devise.sh` (typo) tidak pernah ada** — riwayat git menunjukkan file sudah bernama `setup-new-device.sh` sejak commit `cecd29b` ("Fix onboarding: rename to setup-new-device.sh"), sebelum sesi ini. Tidak ada rename yang perlu dilakukan.
+- **Symlink tidak layak untuk satupun dari 34 file OKF** (0/34 identik byte-per-byte ke sumber utuh) — sesuai logika kondisional di brief tugas sendiri, ini memilih jalur generator.
+
+### 11.2 Reproducibility 34 file OKF tidak seragam — ini mengubah desain "gitignore build artifact"
+
+- **26 file kelas EMBEDDED** (sudah punya frontmatter native `name:`/`description:` tertanam di sumber `knowledge/`): body identik 100% dengan sumber setelah wrapper OKF di-strip. **Sepenuhnya reproducible secara mekanis** oleh generator.
+- **8 file kelas BARE** (`meridian`, `agent-skills-repo-agent-rules`, `agent-skills-repo-conventions`, `codex-codegraph-rules`, `hermes-agent-framework-guide`, `hermes-runtime-rules`, `meridian-bot-engineering-manual`, `miftahudin-admin-profile`): frontmatter disintesis manual, dan 2 di antaranya (`agent-skills-repo-agent-rules`, `hermes-runtime-rules`) punya perbaikan konten manual (heading ditambahkan, smart-quote diperbaiki) yang **tidak ada di sumber `knowledge/`**. Generator yang regenerate file ini dari `knowledge/` akan **menghapus perbaikan tersebut** — tidak reproducible dengan aman.
+- **Keputusan (deviasi dari instruksi literal "`.omp/skills/` di-gitignore sebagai artefak build"):** `.omp/skills/` TETAP di-git-track, bukan digitignore. Alasan: memperlakukannya sebagai artefak build murni hanya valid jika 100% reproducible dari sumber; karena 8/34 file tidak, gitignore akan membuat konten itu hilang permanen begitu ada device yang hanya mengandalkan generator tanpa riwayat git yang membawa versi lama. Sebagai gantinya, generator bersifat **fill-gap, bukan overwrite-all**: hanya menulis entry yang belum ada di `.omp/skills/`, tidak pernah menimpa entry yang sudah ada di sana.
+
+### 11.3 Single source of truth per kelas
+
+| Kelas | Sumber kebenaran | Cara update |
+|---|---|---|
+| Skill EMBEDDED (26) | `knowledge/skills/*.md` (isi body) | Edit di `knowledge/`, generator mekanis menyalin ke `.omp/skills/` |
+| Skill BARE (8) | `.omp/skills/<name>/SKILL.md` itu sendiri | Edit langsung di `.omp/skills/`; `knowledge/` tetap arsip append-only pasif untuk file-file ini (kontrak §5 tidak berubah — tidak diedit/dihapus), tapi bukan lagi sumber regenerasi untuk skill hasil sintesis |
+| Managed/learned skills (dari tool `manage_skill`) | `~/.omp/agent/managed-skills/` (device-local, hasil `learn`) | `sync-skills.sh` (sudah ada, tidak perlu script baru bernama `export-learned-skills.sh` — akan jadi duplikasi fungsi yang sudah bekerja) meng-copy ke `.omp/skills/` lalu commit+push |
+| Sesi, transkrip, "project" list | `~/.omp/agent/sessions/<cwd-encoded>/*.jsonl`, device-local | **Di luar scope sinkronisasi** — device-local by design di omp, tidak ada mekanisme built-in untuk sync lintas device. Tidak dibangun mekanisme baru untuk ini (di luar permintaan; membangunnya berarti reimplementasi sebagian session-storage omp). |
+| Memori jangka panjang (fakta, keputusan, mental model) | Hindsight (`recall`/`retain`/`reflect`, bank `my-ai-agent`) | Native omp tools, sudah cross-device by design selama `HINDSIGHT_API_URL`/`HINDSIGHT_API_TOKEN`/`HINDSIGHT_BANK_ID` di `.env` device baru mengarah ke instance yang sama |
+
+### 11.4 Duplikasi 6→7 managed-skills di dua lokasi: DIPERTAHANKAN, bukan dihilangkan
+
+Instruksi awal ("satu lokasi kanonik saja") dievaluasi ulang: `.omp/skills/` (native, priority 100) hanya aktif ketika `omp` dijalankan di dalam/subdirektori repo `my-ai-agents`. `~/.omp/agent/managed-skills/` (`omp-managed`, priority 5) di-scan **unconditional**, terlepas dari cwd/repo mana pun. Skill umum seperti `agent-troubleshoot` atau `fix-bashrc-compatibility` relevan juga di repo LAIN — menghapus salinannya dari `managed-skills/` demi "satu lokasi" akan membuatnya hilang saat bekerja di luar `my-ai-agents`. Keduanya dipertahankan dengan **arah sinkronisasi jelas**:
+
+- **Export** (managed-skills → repo, existing): `sync-skills.sh`, dijalankan manual/oleh agent setelah `manage_skill create`/`update` (aturan sudah ada di §9.2 — pelanggaran aturan ini pada `okf-to-native-skill-migration` di sesi sebelumnya adalah bukti perlu diperkuat, bukan bukti desainnya salah).
+- **Import** (repo → managed-skills device baru, BELUM ADA — bagian dari Fase 2): langkah baru di `setup-new-device.sh` yang menyalin skill dari `.omp/skills/` ke `~/.omp/agent/managed-skills/` jika belum ada secara lokal, dengan pengecekan hash agar tidak menimpa versi lokal yang lebih baru.
+- Git hook `post-merge`/`post-checkout` **tidak** dipakai untuk "refresh `.omp/skills/`" seperti disebut di brief tugas — itu sudah otomatis lewat `git pull` biasa karena file di-track git. Hook dipakai untuk memicu ulang langkah **import** di atas setelah `git pull`, supaya skill baru dari teman satu tim ikut ter-import ke `managed-skills/` lokal tanpa perintah tambahan.
+
+### 11.5 Interpretasi Gate B (memory persistence)
+
+"Sesi/workflow/project harus muncul kembali tanpa langkah manual" diinterpretasikan sebagai: **memori semantik Hindsight** (fakta yang ditulis via `retain`, bisa ditarik lewat `recall`/`reflect`) pulih otomatis di clone+setup baru selama kredensial Hindsight sama. Riwayat sesi mentah dan project-list TIDAK diuji untuk "pulih otomatis lintas device" karena §11.3 di atas — bukan kelalaian, tapi batas arsitektur omp yang dikonfirmasi di Fase 0.
