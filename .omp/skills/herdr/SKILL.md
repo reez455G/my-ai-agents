@@ -193,4 +193,3 @@ If the user explicitly asks for another tab, workspace, or worktree, discover th
 - Do not close workspaces, tabs, panes, or sessions you did not create unless the user explicitly asked.
 - Never run `herdr server stop` from an active session unless the user explicitly intends to stop the server and its pane processes.
 - Never kill the main Herdr process. Use named test sessions for experiments that need an isolated server.
-</content>
