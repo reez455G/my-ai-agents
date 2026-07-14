@@ -208,3 +208,40 @@ Instruksi awal ("satu lokasi kanonik saja") dievaluasi ulang: `.omp/skills/` (na
 ### 11.5 Interpretasi Gate B (memory persistence)
 
 "Sesi/workflow/project harus muncul kembali tanpa langkah manual" diinterpretasikan sebagai: **memori semantik Hindsight** (fakta yang ditulis via `retain`, bisa ditarik lewat `recall`/`reflect`) pulih otomatis di clone+setup baru selama kredensial Hindsight sama. Riwayat sesi mentah dan project-list TIDAK diuji untuk "pulih otomatis lintas device" karena §11.3 di atas — bukan kelalaian, tapi batas arsitektur omp yang dikonfirmasi di Fase 0.
+
+---
+
+## 12. Integrasi OMP↔Hindsight↔OKF & Keandalan LLM Backend (2026-07-14)
+
+### 12.1 OMP (Server A/B/lainnya) → Hindsight: sudah tersambung, bukan gap baru
+
+Cross-device sudah bekerja by design sejak §8/§9: satu instance Hindsight (`hindsight.efsatu.my.id`, juga `localhost:8890` di Server A), satu bank (`my-ai-agent`), config disebar via `setup-new-device.sh` + `omp-config.template.yml` — device baru tinggal isi token yang sama. Ini BUKAN pekerjaan integrasi yang belum ada.
+
+**Koreksi atas §8 poin 2:** env `AGENT_BRAIN_ID` yang disebut "wajib di-set oleh otak yang terpasang" ternyata **tidak perlu diset manual** — verifikasi API (`GET .../tags`) menunjukkan tag `brain:claude` dan `device:parrot` sudah ada di bank meski `AGENT_BRAIN_ID` tidak pernah di-set di `.env`/shell rc manapun di Server A. Native harness `omp` sendiri yang otomatis menyuntikkan atribusi brain (dari model role aktif) dan device (dari hostname) ke setiap `retain()`. §8 poin 2 keliru menganggap ini perlu konfigurasi eksplisit — dibiarkan sebagai catatan sejarah, tidak dihapus (kontrak append-only), dikoreksi di sini.
+
+**Gap nyata yang ditemukan:** dari 1497 total nodes di bank, hanya 13 yang punya tag `brain:`/`device:` — mayoritas mutlak entry historis tidak teratribusi (ditulis sebelum fitur auto-tagging harness ada, atau oleh jalur non-`retain()` seperti ingestion manual). Tidak ada tindakan diambil untuk data lama (di luar scope hari ini); entry BARU otomatis teratribusi tanpa perlu perubahan apapun.
+
+### 12.2 OKF → Hindsight: `ingest-okf-to-hindsight.py`
+
+Sebelumnya OKF (`knowledge/`) hanya bisa diakses lewat native skill provider `omp` (cwd-scoped ke repo ini, load seluruh `SKILL.md`, bukan pencarian semantik per-fakta) — `recall()`/`reflect()` Hindsight tidak pernah melihat isi OKF sama sekali. Hindsight API ternyata sudah punya primitif yang cocok (`POST .../memories` dengan `document_id`/`tags`/`timestamp: "unset"` untuk konten statis) — tidak perlu infrastruktur baru.
+
+`ingest-okf-to-hindsight.py` (root repo, stdlib + `python-frontmatter`):
+- Scan `knowledge/**/*.md` (kecuali `index.md`), tiap file OKF valid jadi satu Hindsight document dengan `document_id=f"okf:{id}"`, tag `source:okf` + `project:my-ai-agents` + `okf-tag:<tag asli>`, `timestamp: "unset"`.
+- Idempoten by design: `knowledge/` append-only (§5) → isi file tidak pernah berubah setelah ter-ingest, jadi cukup skip `document_id` yang sudah ada di bank (di-query lewat `GET .../documents`, bukan state lokal — supaya device manapun yang menjalankannya melihat status bank yang sama).
+- **Retain sinkron (`async: false`), bukan async** — pilihan sadar: versi async awal punya race (script re-run sebelum batch async selesai diproses tidak melihat document baru sebagai "sudah ada" → double-submit). Sinkron menghilangkan race ini sepenuhnya karena proses tidak return sampai retain benar-benar selesai.
+- Dipanggil otomatis dari `sync-skills.sh` (best-effort, `|| echo WARN` — Hindsight down tidak boleh menggagalkan commit+push `.omp/skills`).
+- OKF (`knowledge/`) TETAP sumber kebenaran git-tracked; ingestion ke Hindsight adalah salinan read-optimized untuk `recall()`/`reflect()`, sama seperti `.omp/skills/` adalah salinan read-optimized untuk native skill provider. Tiga representasi, satu sumber.
+
+### 12.3 Keandalan LLM backend Hindsight — root cause "model kurang pintar merusak memory"
+
+Investigasi `GET .../stats` menemukan 78 failed operations + 45 failed consolidation (dari total ~350) di bank produksi — SEMUA gagal karena masalah LLM backend Hindsight sendiri (`HINDSIGHT_API_LLM_MODEL`), bukan konten yang ditulis salah:
+- 3x HTTP 500 `"System role not supported"` — `google/gemma-4-31b-it` (model lama) menolak system-role message yang dikirim Hindsight secara struktural.
+- 5x HTTP 429 rate-limit, sisanya timeout — beban `consolidation_llm_parallelism: 4` / `batch_size: 8` terlalu agresif untuk tier API yang dipakai.
+
+**Percobaan pertama (SALAH, sempat menyalahkan kontensi CPU host/`questdb`):** ganti ke `nvidia/llama-3.3-nemotron-super-49b-v1.5` — model *reasoning*. Terbukti lewat test langsung (curl berulang ke NVIDIA API): model ini menghabiskan SELURUH `max_completion_tokens` budget (100 token, dipakai keras oleh kode verifikasi boot Hindsight) untuk `reasoning_content` tersembunyi sebelum sempat menjawab — `finish_reason: length`, `content: null` di 3/4 percobaan. Tidak ada parameter (`chat_template_kwargs.thinking=false`, `reasoning_effort=none`, dll — semua dicoba) yang berhasil menonaktifkan reasoning lewat API call biasa; hanya system-role `/no_think` yang manjur, dan itu tidak bisa disuntik ke internal call Hindsight.
+
+**Fix final:** `HINDSIGHT_API_LLM_MODEL=meta/llama-3.1-70b-instruct` — model instruct biasa (non-reasoning), terverifikasi 3x call berturut-turut <1 detik, `finish_reason: stop` bersih. Plus `HINDSIGHT_API_LLM_TIMEOUT=300` (env baru, default kode 120s) dan `consolidation_llm_parallelism: 2` / `batch_size: 4` (turun dari 4/8, patch via `PATCH .../config`) untuk redam tekanan rate-limit. Semua 78+45 operasi gagal lama di-retry (`POST .../operations/{id}/retry`, `POST .../consolidation/recover`) — hasil akhir `failed_operations: 0`, `failed_consolidation: 0`.
+
+**Pelajaran untuk pemilihan model LLM backend Hindsight ke depan:** Hindsight memakai model untuk ekstraksi fakta terstruktur dengan token budget KETAT (chunked, per-call kecil) — model *reasoning* (nemotron, gemma-thinking, dst.) buruk untuk pola ini kecuali ada jalur eksplisit menonaktifkan reasoning yang bisa disuntik Hindsight sendiri (belum ada). Pilih model instruct non-reasoning yang stabil; jangan asumsikan "model lebih besar/canggih = lebih baik" untuk workload ini — `meta/llama-3.1-70b-instruct` (non-reasoning) mengalahkan `nemotron-super-49b` (reasoning) justru karena LEBIH SEDERHANA perilakunya, bukan karena lebih pintar.
+
+**Ditolak eksplisit:** OmniRoute (`localhost:20128`, dipakai coding-agent `omp`) sebagai provider LLM Hindsight — modelnya (`gemini-cli/*`, `codex/*`, `antigravity/*`) semua backed sesi OAuth CLI interaktif, bukan API key stabil; test langsung `POST /v1/chat/completions` timeout total (8-18 detik tanpa respons) — tidak layak untuk service headless 24/7.
