@@ -11,8 +11,9 @@ Konfigurasi + basis pengetahuan statis untuk **OMP (Oh My Pi)**, dengan **dual m
 │   ─ auto-scanned oleh omp      ─ retain()        │
 │   ─ 1 SKILL.md per folder      ─ recall()        │
 │   ─ prioritas tertinggi (100)  ─ reflect()       │
+│   ─ sync: Syncthing (bukan git, sejak 2026-07-18) │
 │                                                  │
-│   knowledge/ (OKF, append-only archive)          │
+│   knowledge/ (OKF, append-only archive, git)     │
 │   Sumber kebenaran; sync-skills.sh & migrasi     │
 │   manual menyalin isinya ke .omp/skills/         │
 └──────────────────────────────────────────────────┘
@@ -22,7 +23,7 @@ Konfigurasi + basis pengetahuan statis untuk **OMP (Oh My Pi)**, dengan **dual m
 
 | Komponen | Fungsi | Sifat |
 |---|---|---|
-| **`.omp/skills/`** | Skill/rules siap pakai — auto-discovered native oleh `omp` | Git-tracked, prioritas provider tertinggi (100) |
+| **`.omp/skills/`** | Skill/rules siap pakai — auto-discovered native oleh `omp` | Disync via **Syncthing** (device-local, bukan git-tracked sejak 2026-07-18), prioritas provider tertinggi (100) |
 | **OKF** (`knowledge/`) | Arsip sumber pengetahuan statis — rules, skills, kebijakan | Append-only, versioned di git |
 | **Hindsight** (Docker/remote) | Memori dinamis — percakapan, keputusan, konteks | Semantik, auto-learn via LLM, native ke `omp` (`recall`/`retain`/`reflect`) |
 
@@ -38,13 +39,13 @@ my-ai-agents/
 ├── .env.example                  # Template environment variables
 ├── omp-config.template.yml       # Template config untuk device baru
 ├── setup-new-device.sh           # Onboarding script device baru
-├── sync-skills.sh                # Sync managed-skills lokal -> .omp/skills/
+├── sync-skills.sh                # managed-skills lokal + knowledge/ -> .omp/skills/ (bagian commit+push git di ujung script sudah no-op sejak .omp/skills digitignore)
 ├── verify.sh                     # Checklist verifikasi
 │
 ├── src/
 │   └── validate_okf.py           # Validator kontrak OKF (knowledge/*.md)
 │
-├── .omp/skills/                  # 40 files — native-discovered skills (agent-troubleshoot, meridian, dst.)
+├── .omp/skills/                  # 54 files — native-discovered skills, disync via Syncthing (folder ID "omp-skills"), TIDAK di-git-track
 │
 └── knowledge/                    # OKF Knowledge Base — arsip sumber (append-only!)
     ├── index.md                  # Indeks semua knowledge
@@ -362,7 +363,62 @@ description: Deskripsi satu kalimat + kapan dipakai.
 ```
 
 2. Daftarkan di `knowledge/index.md` (kontrak append-only, lihat `program.md` §5).
-3. Salin isinya (tanpa frontmatter OKF terluar) ke `.omp/skills/<nama-skill>/SKILL.md` supaya `omp` bisa langsung men-scan-nya secara native (lihat `program.md` §9).
+3. Salin isinya (tanpa frontmatter OKF terluar) ke `.omp/skills/<nama-skill>/SKILL.md` supaya `omp` bisa langsung men-scan-nya secara native (lihat `program.md` §9). **Tidak perlu commit/push** — begitu file mendarat di disk, Syncthing otomatis menyebarkannya ke device lain yang sudah di-pairing (lihat bawah).
+
+## Sinkronisasi `.omp/skills/` via Syncthing
+
+Sejak 2026-07-18, `.omp/skills/` **tidak lagi di-git-track** (lihat `program.md` §13). Disync real-time antar device lewat [Syncthing](https://syncthing.net), folder ID `omp-skills` (harus identik di semua device).
+
+### Setup device baru (sekali per device)
+
+```bash
+sudo apt install -y syncthing
+systemctl --user enable --now syncthing
+syncthing --device-id   # catat Device ID device ini
+```
+
+### Pairing — via Web UI (`http://localhost:8384`, tunnel SSH kalau remote)
+
+Actions → Add Remote Device (tempel Device ID device lain) → di folder `omp-skills`, tab Sharing, centang device tersebut. Ulangi dari device lain untuk arah sebaliknya.
+
+### Pairing — via REST API (device CLI-only tanpa browser)
+
+```bash
+CONFIG=~/.config/syncthing/config.xml
+[ -f "$CONFIG" ] || CONFIG=~/.local/state/syncthing/config.xml
+API_KEY=$(grep -oP '(?<=<apikey>).*(?=</apikey>)' "$CONFIG")
+REMOTE_ID="<device-id-lawan-pairing>"
+
+# 1. Tambahkan remote device
+curl -s -X PUT -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
+  http://localhost:8384/rest/config/devices/$REMOTE_ID \
+  -d "{\"deviceID\": \"$REMOTE_ID\", \"name\": \"nama-device-lawan\", \"addresses\": [\"dynamic\"]}"
+
+# 2. Tambahkan + share folder omp-skills (jalankan di KEDUA sisi, folder ID harus sama)
+curl -s -X PUT -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
+  http://localhost:8384/rest/config/folders/omp-skills \
+  -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$HOME/my-ai-agents/.omp/skills\", \"type\": \"sendreceive\", \"devices\": [{\"deviceID\": \"$REMOTE_ID\"}]}"
+
+# 3. Verifikasi
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8384/rest/system/connections | python3 -m json.tool
+curl -s -H "X-API-Key: $API_KEY" "http://localhost:8384/rest/db/status?folder=omp-skills" | python3 -m json.tool
+```
+
+Jalankan langkah 1-2 di kedua device (masing-masing menunjuk ke Device ID lawannya). Perubahan config lewat REST API berlaku langsung tanpa restart.
+
+### Onboarding device baru — `setup-new-device.sh` TIDAK meng-cover Syncthing
+
+`setup-new-device.sh` hanya mengurus Hindsight/omp (token, bank, venv, git hooks) — tidak tahu apa-apa soal Syncthing, dan bagian alias-nya masih menulis alias lama berbasis git. Kalau dijalankan di device baru, timpa manual bagian alias sesuai poin di bawah, lalu install + pairing Syncthing terpisah seperti di atas.
+
+### Alias `omp` (tanpa auto git pull/push)
+
+```bash
+# ~/.zshrc atau ~/.bashrc
+alias omp="/path/ke/bin/omp"
+alias omp-sync="cd ~/my-ai-agents && git pull origin main && git push origin main"
+```
+
+`omp-sync` dijalankan manual tiap ada perubahan di `knowledge/`, `src/`, atau `program.md` yang mau disebar — bukan otomatis tiap sesi.
 
 ## Cara Pakai Hindsight
 
@@ -389,6 +445,8 @@ bash setup-new-device.sh
 ```
 
 Script akan: clone repo → minta token & URL → pilih bank memori omp (lanjut bank existing atau fresh) → apply omp config (non-destruktif) → setup venv + `.env` → test konektivitas.
+
+Script ini **tidak** meng-handle `.omp/skills/` — setelah selesai, lakukan setup Syncthing terpisah (lihat "Sinkronisasi `.omp/skills/` via Syncthing" di atas) supaya skill ikut tersedia di device baru.
 
 ## Port & Infra
 

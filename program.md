@@ -245,3 +245,22 @@ Investigasi `GET .../stats` menemukan 78 failed operations + 45 failed consolida
 **Pelajaran untuk pemilihan model LLM backend Hindsight ke depan:** Hindsight memakai model untuk ekstraksi fakta terstruktur dengan token budget KETAT (chunked, per-call kecil) — model *reasoning* (nemotron, gemma-thinking, dst.) buruk untuk pola ini kecuali ada jalur eksplisit menonaktifkan reasoning yang bisa disuntik Hindsight sendiri (belum ada). Pilih model instruct non-reasoning yang stabil; jangan asumsikan "model lebih besar/canggih = lebih baik" untuk workload ini — `meta/llama-3.1-70b-instruct` (non-reasoning) mengalahkan `nemotron-super-49b` (reasoning) justru karena LEBIH SEDERHANA perilakunya, bukan karena lebih pintar.
 
 **Ditolak eksplisit:** OmniRoute (`localhost:20128`, dipakai coding-agent `omp`) sebagai provider LLM Hindsight — modelnya (`gemini-cli/*`, `codex/*`, `antigravity/*`) semua backed sesi OAuth CLI interaktif, bukan API key stabil; test langsung `POST /v1/chat/completions` timeout total (8-18 detik tanpa respons) — tidak layak untuk service headless 24/7.
+
+---
+
+## 13. Migrasi `.omp/skills/` dari Git ke Syncthing (2026-07-18)
+
+**Perubahan:** `.omp/skills/` **tidak lagi di-git-track**. §9 poin 1 dan §11 (tabel "Managed/learned skills") yang menyatakan "`.omp/skills/` di-git-track" **superseded** oleh entri ini — dibiarkan sebagai catatan sejarah (kontrak append-only), bukan lagi kondisi aktual sejak commit `7eb0a6c`.
+
+**Alasan:** alias `omp` lama (`git pull -q && omp && ./sync-skills.sh`) membuat setiap start/exit sesi jadi titik konflik git (commit race antar-device kalau dua device jalan bersamaan) dan menahan startup di belakang `git pull`. Sync real-time via Syncthing menghilangkan konflik itu — perubahan skill nongol di device lain dalam hitungan detik tanpa commit manual.
+
+**Mekanisme baru:**
+- `git rm -r --cached .omp/skills` + `.omp/skills/` masuk `.gitignore` — file tetap ada di disk, hanya berhenti dilacak git ke depan.
+- Syncthing (folder ID `omp-skills`, sama persis di semua device) mensinkronkan `.omp/skills/` secara real-time, dua-arah, antar device yang di-pairing.
+- **Pairing headless via REST API** (bukan cuma web UI `:8384`): device tanpa GUI/browser bisa pairing 100% lewat `curl` ke `/rest/config/devices/<id>` (PUT) dan `/rest/config/folders/omp-skills` (PUT) di kedua sisi, pakai API key dari `<apikey>` di `~/.config/syncthing/config.xml` (atau `~/.local/state/syncthing/config.xml`). Tidak perlu SSH tunnel ke `:8384` kalau device CLI-only.
+- `knowledge/`, `src/`, `program.md` TETAP di git seperti biasa (append-only contract §5 tidak berubah, hanya berlaku pada arsip sumber, bukan `.omp/skills/`).
+- Alias `omp` disederhanakan jadi langsung `/path/to/omp` (tanpa git pull/push/sync-skills otomatis). Alias baru `omp-sync` (`git pull && git push` manual) dipakai kapan pun ada perubahan di `knowledge/`/`src/`/`program.md` yang perlu disebar.
+
+**Implikasi ke `sync-skills.sh` (§9 poin 2):** bagian akhir script yang melakukan `git add .omp/skills && git commit && git push` sekarang **no-op diam-diam** (path itu di-gitignore, `git status --porcelain .omp/skills` selalu kosong) — bukan error, tapi juga tidak lagi berfungsi. Bagian penyalinan `~/.omp/agent/managed-skills/` → `.omp/skills/` dan `knowledge/` → `.omp/skills/` (embedded-class) TETAP relevan dan tetap harus dijalankan; Syncthing yang mengambil alih distribusi ke device lain, bukan git, begitu file mendarat di disk.
+
+**Onboarding device baru (pelengkap `setup-new-device.sh`):** script itu tidak tahu apa-apa soal Syncthing (tidak diubah, di luar scope migrasi ini) dan bagian alias-nya (baris "5b") masih menulis alias lama berbasis git — kalau dijalankan di device baru, alias hasil generate script itu harus ditimpa manual sesuai poin alias di atas. Instalasi + pairing Syncthing tetap langkah manual terpisah, tidak terintegrasi ke script onboarding ini.
