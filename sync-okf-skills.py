@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """sync-okf-skills.py — mirror knowledge/{skills,agent-rules}/*.md into .omp/skills/
-for native omp discovery (program.md §9/§11). stdlib-only.
+for native omp discovery (program.md §9/§11). Uses python-frontmatter (already
+a requirements.txt dependency).
 
 Two source classes, handled differently (program.md §11.2-11.3):
 
@@ -19,8 +20,9 @@ Run from repo root or anywhere (path is self-relative). Exit 0 always (informati
 tool); commit/push is sync-skills.sh's job.
 """
 import os
-import re
 import sys
+
+import frontmatter
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 KNOWLEDGE_DIRS = [
@@ -46,36 +48,24 @@ BARE_MANIFEST = {
 
 def detect(path):
     """Return ('embedded', name, body) | ('bare', None, None) | None (unparsable)."""
-    text = open(path, encoding="utf-8").read()
-    lines = text.split("\n")
-    if not lines or lines[0].strip() != "---":
-        return None
     try:
-        okf_close = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
-    except StopIteration:
+        outer = frontmatter.load(path)
+    except Exception:
         return None
-    i = okf_close + 1
-    blanks = 0
-    while i < len(lines) and lines[i].strip() == "" and blanks < 2:
-        i += 1
-        blanks += 1
-    if i < len(lines) and lines[i].strip() == "---":
-        try:
-            native_close = next(j for j in range(i + 1, len(lines)) if lines[j].strip() == "---")
-        except StopIteration:
-            return None
-        name = None
-        for l in lines[i + 1:native_close]:
-            m = re.match(r"^name:\s*(.+)$", l.strip())
-            if m:
-                name = m.group(1).strip()
-        if not name:
-            return None
-        body = "\n".join(lines[i:]).lstrip("\n")
-        if not body.endswith("\n"):
-            body += "\n"
-        return ("embedded", name, body)
-    return ("bare", None, None)
+    if not outer.metadata:
+        return None
+    rest = outer.content.lstrip("\n")
+    if not rest.startswith("---"):
+        return ("bare", None, None)
+    try:
+        inner = frontmatter.loads(rest)
+    except Exception:
+        return None
+    name = inner.get("name")
+    if not name:
+        return None
+    body = rest if rest.endswith("\n") else rest + "\n"
+    return ("embedded", name, body)
 
 
 def main():

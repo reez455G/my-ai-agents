@@ -1,0 +1,217 @@
+[2026-07-15T13:16:29Z] BURN: 🔥 BURN TEST DIMULAI
+[2026-07-15T13:16:48Z] BURN: Baseline: 35.0% used, resets in 2h43m
+[2026-07-15T13:17:08Z] BURN: 📊 Usage: 35.0% (resets: 2h42m) | batch=0
+[2026-07-15T13:17:09Z] BURN: 📤 → anthr-agent-1: Lakukan riset mendalam tentang arsitektur microservices: jel...
+[2026-07-15T13:17:09Z] BURN: 📤 → anthr-agent-2: Buat analisis komprehensif tentang 8 algoritma sorting (bubb...
+[2026-07-15T13:17:09Z] BURN: ⏳ Waiting for batch 1 to complete...
+[2026-07-15T13:17:19Z] BURN: ✅ Batch 1 done
+[2026-07-15T13:17:40Z] BURN: 📊 Usage: 36.0% (resets: 2h42m) | batch=1
+[2026-07-15T13:17:40Z] BURN: 📤 → anthr-agent-1: Jelaskan secara mendalam konsep Kubernetes: arsitektur (mast...
+[2026-07-15T13:17:40Z] BURN: 📤 → anthr-agent-2: Analisis perbedaan antara SQL dan NoSQL databases: PostgreSQ...
+[2026-07-15T13:17:41Z] BURN: ⏳ Waiting for batch 2 to complete...
+[2026-07-15T13:17:48Z] BURN: ✅ Batch 2 done
+[2026-07-15T13:18:11Z] BURN: 📊 Usage: 36.0% (resets: 2h41m) | batch=2
+[2026-07-15T13:18:11Z] BURN: 📤 → anthr-agent-1: Buat panduan lengkap tentang CI/CD pipeline modern: GitHub A...
+[2026-07-15T13:18:12Z] BURN: 📤 → anthr-agent-2: Jelaskan machine learning dari dasar: supervised vs unsuperv...
+[2026-07-15T13:18:12Z] BURN: ⏳ Waiting for batch 3 to complete...
+[2026-07-15T13:18:19Z] BURN: ✅ Batch 3 done
+[2026-07-15T13:20:18Z] BURN: 🔥 BURN TEST v2 DIMULAI
+[2026-07-15T13:20:32Z] BURN: 📊 Baseline: 38.0% | resets in: 2h39m
+[2026-07-15T13:20:50Z] BURN: 📊 [loop] Usage=38.0% resets=2h39m batch=0
+[2026-07-15T13:20:50Z] BURN: 📤 [A1] → anthr-agent-1: Buat implementasi lengkap sistem CRUD REST API dengan FastAPI + SQLAlc...
+[2026-07-15T13:21:09Z] BURN: ⚠️  [A1] anthr-agent-1 didn't show Working... (fast or queued): |             ██    ██              |
+|           
+[2026-07-15T13:21:12Z] BURN: 📤 [B1] → anthr-agent-2: Analisis mendalam dan implementasi 15 design patterns GoF di Python de...
+[2026-07-15T13:21:32Z] BURN: ⚠️  [B1] anthr-agent-2 didn't show Working... (fast or queued): |             anthropic              |
++----------
+[2026-07-15T13:21:32Z] BURN: ⏳ Waiting for batch 1...
+[2026-07-15T13:21:32Z] BURN: ✅ Batch 1 complete (0s)
+[2026-07-15T13:25:09Z] BURN: 🔥 BURN TEST v2 DIMULAI
+[2026-07-15T13:25:31Z] BURN: 📊 Baseline: 43.0% | resets in: 2h34m
+[2026-07-15T13:25:48Z] BURN: 📊 [loop] Usage=43.0% resets=2h34m batch=0
+[2026-07-15T13:25:49Z] BURN: 📤 [A1] → anthr-agent-1 (pane=w1C:p7): Buat implementasi lengkap sistem CRUD REST API dengan FastAPI + SQLAlc...
+[2026-07-15T13:25:52Z] BURN: 🟡 [A1] anthr-agent-1 working...
+[2026-07-15T13:25:55Z] BURN: 📤 [B1] → anthr-agent-2 (pane=w1C:p8): Analisis mendalam dan implementasi 15 design patterns GoF di Python de...
+[2026-07-15T13:25:58Z] BURN: 🟡 [B1] anthr-agent-2 working...
+[2026-07-15T13:25:59Z] BURN: ⏳ Waiting for batch 1...
+[2026-07-15T13:28:56Z] BURN: ✅ Batch 1 complete (177s)
+[2026-07-15T13:29:43Z] BURN: 📊 [loop] Usage=51.0% resets=2h30m batch=1
+[2026-07-15T13:29:44Z] BURN: 📤 [A2] → anthr-agent-1 (pane=w1C:p7): Implementasikan dari scratch sebuah mini database engine sederhana di ...
+[2026-07-15T13:30:10Z] BURN: ⚠️  [A2] anthr-agent-1 no Working... yet:    `- Alt+Up to edit
+
+ Todos · 1/3
+  |-- I. Scaffo
+[2026-07-15T13:30:13Z] BURN: 📤 [B2] → anthr-agent-2 (pane=w1C:p8): Implementasi interpreter bahasa pemrograman sederhana di Python: lexer...
+[2026-07-15T13:30:39Z] BURN: ⚠️  [B2] anthr-agent-2 no Working... yet:  with scikit-learn code
+     '-- [ ] Include all G
+[2026-07-15T13:30:39Z] BURN: ⏳ Waiting for batch 2...
+[2026-07-15T13:30:39Z] BURN: ✅ Batch 2 complete (0s)
+[2026-07-15T13:31:33Z] BURN: 📊 [loop] Usage=53.0% resets=2h28m batch=2
+[2026-07-15T13:31:34Z] BURN: 📤 [A3] → anthr-agent-1 (pane=w1C:p7): Buat framework mini dependency injection di Python mirip FastAPI/Sprin...
+[2026-07-15T13:32:00Z] BURN: ⚠️  [A3] anthr-agent-1 no Working... yet:  dengan unit tests.
+
+
+ ✼ Thinking
+
+ Todos · 1/3
+  
+[2026-07-15T13:32:03Z] BURN: 📤 [B3] → anthr-agent-2 (pane=w1C:p8): Buat sistem distributed tracing sederhana di Python: trace context pro...
+[2026-07-15T13:32:29Z] BURN: ⚠️  [B3] anthr-agent-2 no Working... yet:  with schema and decision matrix
+     |-- [ ] Incl
+[2026-07-15T13:32:29Z] BURN: ⏳ Waiting for batch 3...
+[2026-07-15T13:32:29Z] BURN: ✅ Batch 3 complete (0s)
+[2026-07-15T13:35:07Z] BURN: 🔥 BURN TEST v2 DIMULAI
+[2026-07-15T13:35:37Z] BURN: 📊 Baseline: 61.0% | resets in: 2h24m
+[2026-07-15T13:36:04Z] BURN: 📊 [loop] Usage=61.0% resets=2h23m batch=0
+[2026-07-15T13:36:05Z] BURN: 📤 [A1] → anthr-agent-1 (pane=w1C:p7): Buat implementasi lengkap sistem CRUD REST API dengan FastAPI + SQLAlc...
+[2026-07-15T13:36:08Z] BURN: 🟡 [A1] anthr-agent-1 working...
+[2026-07-15T13:36:11Z] BURN: 📤 [B1] → anthr-agent-2 (pane=w1C:p8): Analisis mendalam dan implementasi 15 design patterns GoF di Python de...
+[2026-07-15T13:36:15Z] BURN: 🟡 [B1] anthr-agent-2 working...
+[2026-07-15T13:36:15Z] BURN: ⏳ Waiting for batch 1...
+[2026-07-15T13:41:17Z] BURN: ⚠️  Batch 1 timeout after 300s — continuing anyway
+[2026-07-15T13:41:45Z] BURN: 📊 [loop] Usage=85.0% resets=2h18m batch=1
+[2026-07-15T13:41:45Z] BURN: 🟠 THRESHOLD HIT: 85.0% ≥ 82%
+[2026-07-15T13:41:45Z] BURN: ⏸️  Agents paused. Entering wait-for-reset phase.
+[2026-07-15T13:41:45Z] BURN: 
+[2026-07-15T13:41:45Z] BURN: ════════════════════════════════════
+[2026-07-15T13:41:45Z] BURN: PHASE 2: WAITING FOR LIMIT RESET
+[2026-07-15T13:41:45Z] BURN: Paused at: 85.0%
+[2026-07-15T13:41:45Z] BURN: Waiting for: < 15%
+[2026-07-15T13:41:45Z] BURN: ════════════════════════════════════
+[2026-07-15T13:42:13Z] BURN: ⏳ [wait 1] usage=85.0% resets_in=2h17m
+[2026-07-15T13:43:41Z] BURN: ⏳ [wait 2] usage=88.0% resets_in=2h16m
+[2026-07-15T13:45:02Z] BURN: ⏳ [wait 3] usage=90.0% resets_in=2h14m
+[2026-07-15T13:46:17Z] BURN: ⏳ [wait 4] usage=90.0% resets_in=2h13m
+[2026-07-15T13:47:36Z] BURN: ⏳ [wait 5] usage=90.0% resets_in=2h12m
+[2026-07-15T13:48:52Z] BURN: ⏳ [wait 6] usage=90.0% resets_in=2h11m
+[2026-07-15T13:50:06Z] BURN: ⏳ [wait 7] usage=100.0% resets_in=2h9m
+[2026-07-15T13:51:22Z] BURN: ⏳ [wait 8] usage=100.0% resets_in=2h8m
+[2026-07-15T13:52:41Z] BURN: ⏳ [wait 9] usage=100.0% resets_in=2h7m
+[2026-07-15T13:53:54Z] BURN: ⏳ [wait 10] usage=100.0% resets_in=2h6m
+[2026-07-15T13:55:08Z] BURN: ⏳ [wait 11] usage=100.0% resets_in=2h4m
+[2026-07-15T13:56:25Z] BURN: ⏳ [wait 12] usage=100.0% resets_in=2h3m
+[2026-07-15T13:57:44Z] BURN: ⏳ [wait 13] usage=100.0% resets_in=2h2m
+[2026-07-15T13:59:02Z] BURN: ⏳ [wait 14] usage=100.0% resets_in=2h
+[2026-07-15T14:00:16Z] BURN: ⏳ [wait 15] usage=100.0% resets_in=1h59m
+[2026-07-15T14:01:31Z] BURN: ⏳ [wait 16] usage=100.0% resets_in=1h58m
+[2026-07-15T14:02:52Z] BURN: ⏳ [wait 17] usage=100.0% resets_in=1h57m
+[2026-07-15T14:04:10Z] BURN: ⏳ [wait 18] usage=100.0% resets_in=1h55m
+[2026-07-15T14:05:23Z] BURN: ⏳ [wait 19] usage=100.0% resets_in=1h54m
+[2026-07-15T14:06:37Z] BURN: ⏳ [wait 20] usage=100.0% resets_in=1h53m
+[2026-07-15T14:07:55Z] BURN: ⏳ [wait 21] usage=100.0% resets_in=1h52m
+[2026-07-15T14:09:10Z] BURN: ⏳ [wait 22] usage=100.0% resets_in=1h50m
+[2026-07-15T14:10:23Z] BURN: ⏳ [wait 23] usage=100.0% resets_in=1h49m
+[2026-07-15T14:11:38Z] BURN: ⏳ [wait 24] usage=100.0% resets_in=1h48m
+[2026-07-15T14:12:57Z] BURN: ⏳ [wait 25] usage=100.0% resets_in=1h47m
+[2026-07-15T14:14:10Z] BURN: ⏳ [wait 26] usage=100.0% resets_in=1h45m
+[2026-07-15T14:15:25Z] BURN: ⏳ [wait 27] usage=100.0% resets_in=1h44m
+[2026-07-15T14:16:39Z] BURN: ⏳ [wait 28] usage=100.0% resets_in=1h43m
+[2026-07-15T14:17:57Z] BURN: ⏳ [wait 29] usage=100.0% resets_in=1h42m
+[2026-07-15T14:19:16Z] BURN: ⏳ [wait 30] usage=100.0% resets_in=1h40m
+[2026-07-15T14:20:29Z] BURN: ⏳ [wait 31] usage=100.0% resets_in=1h39m
+[2026-07-15T14:21:44Z] BURN: ⏳ [wait 32] usage=100.0% resets_in=1h38m
+[2026-07-15T14:23:00Z] BURN: ⏳ [wait 33] usage=100.0% resets_in=1h36m
+[2026-07-15T14:24:17Z] BURN: ⏳ [wait 34] usage=100.0% resets_in=1h35m
+[2026-07-15T14:25:32Z] BURN: ⏳ [wait 35] usage=100.0% resets_in=1h34m
+[2026-07-15T14:26:46Z] BURN: ⏳ [wait 36] usage=100.0% resets_in=1h33m
+[2026-07-15T14:28:03Z] BURN: ⏳ [wait 37] usage=100.0% resets_in=1h31m
+[2026-07-15T14:29:22Z] BURN: ⏳ [wait 38] usage=100.0% resets_in=1h30m
+[2026-07-15T14:30:35Z] BURN: ⏳ [wait 39] usage=100.0% resets_in=1h29m
+[2026-07-15T14:31:49Z] BURN: ⏳ [wait 40] usage=100.0% resets_in=1h28m
+[2026-07-15T14:33:05Z] BURN: ⏳ [wait 41] usage=100.0% resets_in=1h26m
+[2026-07-15T14:34:22Z] BURN: ⏳ [wait 42] usage=100.0% resets_in=1h25m
+[2026-07-15T14:35:36Z] BURN: ⏳ [wait 43] usage=100.0% resets_in=1h24m
+[2026-07-15T14:36:50Z] BURN: ⏳ [wait 44] usage=100.0% resets_in=1h23m
+[2026-07-15T14:38:03Z] BURN: ⏳ [wait 45] usage=100.0% resets_in=1h21m
+[2026-07-15T14:39:23Z] BURN: ⏳ [wait 46] usage=100.0% resets_in=1h20m
+[2026-07-15T14:40:37Z] BURN: ⏳ [wait 47] usage=100.0% resets_in=1h19m
+[2026-07-15T14:41:51Z] BURN: ⏳ [wait 48] usage=100.0% resets_in=1h18m
+[2026-07-15T14:43:07Z] BURN: ⏳ [wait 49] usage=100.0% resets_in=1h16m
+[2026-07-15T14:44:23Z] BURN: ⏳ [wait 50] usage=100.0% resets_in=1h15m
+[2026-07-15T14:45:36Z] BURN: ⏳ [wait 51] usage=100.0% resets_in=1h14m
+[2026-07-15T14:46:48Z] BURN: ⏳ [wait 52] usage=100.0% resets_in=1h13m
+[2026-07-15T14:48:00Z] BURN: ⏳ [wait 53] usage=100.0% resets_in=1h12m
+[2026-07-15T14:49:16Z] BURN: ⏳ [wait 54] usage=100.0% resets_in=1h10m
+[2026-07-15T14:50:30Z] BURN: ⏳ [wait 55] usage=100.0% resets_in=1h9m
+[2026-07-15T14:51:42Z] BURN: ⏳ [wait 56] usage=100.0% resets_in=1h8m
+[2026-07-15T14:52:54Z] BURN: ⏳ [wait 57] usage=100.0% resets_in=1h7m
+[2026-07-15T14:54:12Z] BURN: ⏳ [wait 58] usage=100.0% resets_in=1h5m
+[2026-07-15T14:55:24Z] BURN: ⏳ [wait 59] usage=100.0% resets_in=1h4m
+[2026-07-15T14:56:37Z] BURN: ⏳ [wait 60] usage=100.0% resets_in=1h3m
+[2026-07-15T14:57:48Z] BURN: ⏳ [wait 61] usage=100.0% resets_in=1h2m
+[2026-07-15T14:59:04Z] BURN: ⏳ [wait 62] usage=100.0% resets_in=1h
+[2026-07-15T15:00:16Z] BURN: ⏳ [wait 63] usage=100.0% resets_in=59m
+[2026-07-15T15:01:29Z] BURN: ⏳ [wait 64] usage=100.0% resets_in=58m
+[2026-07-15T15:02:41Z] BURN: ⏳ [wait 65] usage=100.0% resets_in=57m
+[2026-07-15T15:03:57Z] BURN: ⏳ [wait 66] usage=100.0% resets_in=56m
+[2026-07-15T15:05:10Z] BURN: ⏳ [wait 67] usage=100.0% resets_in=54m
+[2026-07-15T15:06:22Z] BURN: ⏳ [wait 68] usage=100.0% resets_in=53m
+[2026-07-15T15:07:34Z] BURN: ⏳ [wait 69] usage=100.0% resets_in=52m
+[2026-07-15T15:08:52Z] BURN: ⏳ [wait 70] usage=100.0% resets_in=51m
+[2026-07-15T15:10:03Z] BURN: ⏳ [wait 71] usage=100.0% resets_in=49m
+[2026-07-15T15:11:15Z] BURN: ⏳ [wait 72] usage=100.0% resets_in=48m
+[2026-07-15T15:12:27Z] BURN: ⏳ [wait 73] usage=100.0% resets_in=47m
+[2026-07-15T15:13:42Z] BURN: ⏳ [wait 74] usage=100.0% resets_in=46m
+[2026-07-15T15:14:54Z] BURN: ⏳ [wait 75] usage=100.0% resets_in=45m
+[2026-07-15T15:16:06Z] BURN: ⏳ [wait 76] usage=100.0% resets_in=43m
+[2026-07-15T15:17:19Z] BURN: ⏳ [wait 77] usage=100.0% resets_in=42m
+[2026-07-15T15:18:33Z] BURN: ⏳ [wait 78] usage=100.0% resets_in=41m
+[2026-07-15T15:19:46Z] BURN: ⏳ [wait 79] usage=100.0% resets_in=40m
+[2026-07-15T15:20:58Z] BURN: ⏳ [wait 80] usage=100.0% resets_in=39m
+[2026-07-15T15:22:12Z] BURN: ⏳ [wait 81] usage=100.0% resets_in=37m
+[2026-07-15T15:23:25Z] BURN: ⏳ [wait 82] usage=100.0% resets_in=36m
+[2026-07-15T15:24:37Z] BURN: ⏳ [wait 83] usage=100.0% resets_in=35m
+[2026-07-15T15:25:48Z] BURN: ⏳ [wait 84] usage=100.0% resets_in=34m
+[2026-07-15T15:27:03Z] BURN: ⏳ [wait 85] usage=100.0% resets_in=32m
+[2026-07-15T15:28:16Z] BURN: ⏳ [wait 86] usage=100.0% resets_in=31m
+[2026-07-15T15:29:27Z] BURN: ⏳ [wait 87] usage=100.0% resets_in=30m
+[2026-07-15T15:30:38Z] BURN: ⏳ [wait 88] usage=100.0% resets_in=29m
+[2026-07-15T15:31:54Z] BURN: ⏳ [wait 89] usage=100.0% resets_in=28m
+[2026-07-15T15:33:07Z] BURN: ⏳ [wait 90] usage=100.0% resets_in=26m
+[2026-07-15T15:34:18Z] BURN: ⏳ [wait 91] usage=100.0% resets_in=25m
+[2026-07-15T15:35:29Z] BURN: ⏳ [wait 92] usage=100.0% resets_in=24m
+[2026-07-15T15:36:44Z] BURN: ⏳ [wait 93] usage=100.0% resets_in=23m
+[2026-07-15T15:37:56Z] BURN: ⏳ [wait 94] usage=100.0% resets_in=22m
+[2026-07-15T15:39:09Z] BURN: ⏳ [wait 95] usage=100.0% resets_in=20m
+[2026-07-15T15:40:21Z] BURN: ⏳ [wait 96] usage=100.0% resets_in=19m
+[2026-07-15T15:41:37Z] BURN: ⏳ [wait 97] usage=100.0% resets_in=18m
+[2026-07-15T15:42:49Z] BURN: ⏳ [wait 98] usage=100.0% resets_in=17m
+[2026-07-15T15:44:01Z] BURN: ⏳ [wait 99] usage=100.0% resets_in=15m
+[2026-07-15T15:45:12Z] BURN: ⏳ [wait 100] usage=100.0% resets_in=14m
+[2026-07-15T15:46:28Z] BURN: ⏳ [wait 101] usage=100.0% resets_in=13m
+[2026-07-15T15:47:40Z] BURN: ⏳ [wait 102] usage=100.0% resets_in=12m
+[2026-07-15T15:48:52Z] BURN: ⏳ [wait 103] usage=100.0% resets_in=11m
+[2026-07-15T15:50:03Z] BURN: ⏳ [wait 104] usage=100.0% resets_in=9m
+[2026-07-15T15:51:18Z] BURN: ⏳ [wait 105] usage=100.0% resets_in=8m
+[2026-07-15T15:52:30Z] BURN: ⏳ [wait 106] usage=100.0% resets_in=7m
+[2026-07-15T15:53:42Z] BURN: ⏳ [wait 107] usage=100.0% resets_in=6m
+[2026-07-15T15:54:54Z] BURN: ⏳ [wait 108] usage=100.0% resets_in=5m
+[2026-07-15T15:56:08Z] BURN: ⏳ [wait 109] usage=100.0% resets_in=3m
+[2026-07-15T15:57:20Z] BURN: ⏳ [wait 110] usage=100.0% resets_in=2m
+[2026-07-15T15:58:32Z] BURN: ⏳ [wait 111] usage=100.0% resets_in=1m
+[2026-07-15T15:59:44Z] BURN: ⏳ [wait 112] usage=100.0% resets_in=4h59m
+[2026-07-15T16:01:00Z] BURN: ⏳ [wait 113] usage=100.0% resets_in=4h58m
+[2026-07-15T16:02:11Z] BURN: ⏳ [wait 114] usage=0.0% resets_in=4h57m
+[2026-07-15T16:02:11Z] BURN: ✅ RESET DETECTED: 0.0% < 15%
+[2026-07-15T16:02:11Z] BURN: 
+[2026-07-15T16:02:11Z] BURN: ════════════════════════════════════
+[2026-07-15T16:02:11Z] BURN: PHASE 3: RESUMING + VERIFYING
+[2026-07-15T16:02:11Z] BURN: ════════════════════════════════════
+[2026-07-15T16:02:15Z] BURN: 📤 Dispatching verification task to anthr-agent-1...
+[2026-07-15T16:02:59Z] BURN: 📥 Verification output:  t/compact/compact/compact/compact/com
+ pact/compact/compact/compact/compact/
+ compact/compact/compact/compact/compa
+ ct/compact/compact/compact/compact/co
+ mpact/compact/compact/compact/compact
+ /compact/compact/compact/compact/comp
+ act/compact/compact/compact/compact/c
+ ompact/compact/compact/com
+[2026-07-15T16:03:10Z] BURN: 
+[2026-07-15T16:03:10Z] BURN: ════════════════════════════════════════════════════════
+[2026-07-15T16:03:10Z] BURN: ✅  BURN TEST COMPLETE
+[2026-07-15T16:03:10Z] BURN:   Phase 1 — Burn:   Pause triggered at 85.0% (≥82%)
+[2026-07-15T16:03:10Z] BURN:   Phase 2 — Wait:   Reset detected at 0.0% (<15%)
+[2026-07-15T16:03:10Z] BURN:   Phase 3 — Resume: Verification confirmed=1
+[2026-07-15T16:03:10Z] BURN:   Final usage:       0.0%
+[2026-07-15T16:03:10Z] BURN:   Result: SUCCESS
+[2026-07-15T16:03:10Z] BURN: ════════════════════════════════════════════════════════

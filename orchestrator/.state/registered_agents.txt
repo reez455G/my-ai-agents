@@ -1,0 +1,5 @@
+omp-agent-1|google-antigravity/gemini-2.5-flash
+omp-agent-2|google-antigravity/gemini-2.5-flash
+planner-agent|anthropic/claude-fable-5
+worker-agent-1|google-antigravity/gemini-2.5-flash
+worker-agent-2|google-antigravity/gemini-2.5-pro

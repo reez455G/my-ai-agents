@@ -25,6 +25,8 @@ import time
 import urllib.error
 import urllib.request
 
+from _env import parse_env_file
+
 REPO = os.path.dirname(os.path.abspath(__file__))
 ENV_PATH = os.path.join(REPO, ".env")
 HERMES_CONFIG = os.path.expanduser("~/.hermes/config.yaml")
@@ -38,12 +40,7 @@ ENV_KEYS = ("HINDSIGHT_API_LLM_PROVIDER", "HINDSIGHT_API_LLM_API_KEY",
 
 
 def read_env() -> dict:
-    vals = {}
-    with open(ENV_PATH) as f:
-        for line in f:
-            m = re.match(r"^([A-Z0-9_]+)=(.*)$", line.strip())
-            if m and m.group(1) in ENV_KEYS:
-                vals[m.group(1)] = m.group(2)
+    vals = {k: v for k, v in parse_env_file(ENV_PATH).items() if k in ENV_KEYS}
     missing = [k for k in ENV_KEYS if k not in vals]
     if missing:
         sys.exit(f"error: {ENV_PATH} tidak punya: {', '.join(missing)}")

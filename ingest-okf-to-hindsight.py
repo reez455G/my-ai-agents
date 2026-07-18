@@ -16,8 +16,9 @@ Run manually, or via sync-skills.sh (auto-runs after manage_skill/knowledge
 changes). Requires HINDSIGHT_API_URL/HINDSIGHT_API_TOKEN/HINDSIGHT_BANK_ID in
 .env (same as verify.sh). Retains synchronously (waits for completion) so a
 re-run immediately after always sees the just-ingested documents and never
-double-submits — safe to invoke repeatedly. stdlib + python-frontmatter only
-(already a requirements.txt dependency via validate_okf.py).
+double-submits — safe to invoke repeatedly. Uses python-frontmatter (already
+a requirements.txt dependency via validate_okf.py) and the shared _env.py
+parser (also used by model-failover.py).
 """
 import json
 import os
@@ -28,21 +29,10 @@ from pathlib import Path
 
 import frontmatter
 
+from _env import parse_env_file
+
 REPO = Path(__file__).parent
 KNOWLEDGE = REPO / "knowledge"
-
-
-def load_env():
-    env = {}
-    env_path = REPO / ".env"
-    if env_path.exists():
-        for line in env_path.read_text().splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, v = line.split("=", 1)
-            env[k.strip()] = v.strip()
-    return env
 
 
 def api_call(url, token, method="GET", payload=None):
@@ -87,7 +77,7 @@ def strip_body(text):
 
 
 def main():
-    env = load_env()
+    env = parse_env_file(REPO / ".env")
     base_url = os.environ.get("HINDSIGHT_API_URL", env.get("HINDSIGHT_API_URL", "http://localhost:8890"))
     token = os.environ.get("HINDSIGHT_API_TOKEN", env.get("HINDSIGHT_API_TOKEN"))
     bank_id = os.environ.get("HINDSIGHT_BANK_ID", env.get("HINDSIGHT_BANK_ID", "my-ai-agent"))
