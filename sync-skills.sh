@@ -26,7 +26,7 @@ done
 sort -u "$MANIFEST.tmp" > "$MANIFEST" && rm -f "$MANIFEST.tmp"
 
 echo "--- knowledge/ -> .omp/skills/ (embedded-class only) ---"
-python3 sync-okf-skills.py
+python3 sync-okf-skills.py || echo "WARN: sync-okf-skills.py gagal, lanjut tanpa embedded-class sync (agar manifest tetap ter-commit)"
 
 echo "--- knowledge/ -> Hindsight (recall/reflect visibility, program.md §12) ---"
 .venv/bin/python ingest-okf-to-hindsight.py || echo "WARN: OKF->Hindsight ingestion gagal (Hindsight down?), lanjut tanpa ini"
