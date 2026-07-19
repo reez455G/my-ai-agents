@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# sync-skills.sh — full .omp/skills/ sync + commit (program.md §9/§11/§12):
+# sync-skills.sh — full .omp/skills/ sync (program.md §9/§11/§12/§13):
 #   1. ~/.omp/agent/managed-skills/* -> .omp/skills/  (manage_skill output)
 #   2. knowledge/{skills,agent-rules}/*.md -> .omp/skills/ for embedded-class
 #      sources only (sync-okf-skills.py; bare-class sources are never touched)
 #   3. knowledge/**/*.md -> Hindsight bank (ingest-okf-to-hindsight.py), so
 #      recall()/reflect() surface OKF content, not just the native skill
-#      provider (program.md §12); best-effort, never blocks the git push.
+#      provider (program.md §12); best-effort, never blocks the rest.
+# .omp/skills/ itself is distributed via Syncthing (program.md §13), not git —
+# this script only regenerates the local copy, it never commits/pushes it.
 # Run after every manage_skill create/update, or after editing knowledge/.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -30,12 +32,3 @@ python3 sync-okf-skills.py || echo "WARN: sync-okf-skills.py gagal, lanjut tanpa
 
 echo "--- knowledge/ -> Hindsight (recall/reflect visibility, program.md §12) ---"
 .venv/bin/python ingest-okf-to-hindsight.py || echo "WARN: OKF->Hindsight ingestion gagal (Hindsight down?), lanjut tanpa ini"
-
-if [ -n "$(git status --porcelain .omp/skills)" ]; then
-    git add .omp/skills
-    git commit -m "Auto-sync managed skills [$(date -u +"%Y-%m-%dT%H:%M:%SZ")]"
-    git push origin main
-    echo "Successfully pushed new skills to origin/main"
-else
-    echo "No changes detected in .omp/skills, nothing to push."
-fi

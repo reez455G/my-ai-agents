@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 [ -f .env ] || { echo "❌ .env tidak ada — copy .env.example dan isi dulu"; exit 1; }
 set -a; source .env; set +a
 URL="${HINDSIGHT_API_URL:-http://localhost:8890}"
-BANK="$AGENT_BANK_ID"
+BANK="$HINDSIGHT_BANK_ID"
 
 echo "=== 1. Hindsight Runtime ==="
 case "$URL" in

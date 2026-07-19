@@ -68,14 +68,6 @@ def existing_okf_document_ids(base_url, bank_id, token):
     return ids
 
 
-def strip_body(text):
-    """Return content after the OKF frontmatter block (post.content already
-    strips it, but frontmatter.load also drops a second native frontmatter
-    block for EMBEDDED-class files — keep as-is, it's still valid prose)."""
-    post = frontmatter.loads(text)
-    return post.content.strip()
-
-
 def main():
     env = parse_env_file(REPO / ".env")
     base_url = os.environ.get("HINDSIGHT_API_URL", env.get("HINDSIGHT_API_URL", "http://localhost:8890"))
