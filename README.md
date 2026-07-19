@@ -406,9 +406,11 @@ curl -s -H "X-API-Key: $API_KEY" "http://localhost:8384/rest/db/status?folder=om
 
 Jalankan langkah 1-2 di kedua device (masing-masing menunjuk ke Device ID lawannya). Perubahan config lewat REST API berlaku langsung tanpa restart.
 
-### Onboarding device baru — `setup-new-device.sh` TIDAK meng-cover Syncthing
+### Onboarding device baru — `setup-new-device.sh` sudah meng-cover Syncthing
 
-`setup-new-device.sh` hanya mengurus Hindsight/omp (token, bank, venv, git hooks) — tidak tahu apa-apa soal Syncthing, dan bagian alias-nya masih menulis alias lama berbasis git. Kalau dijalankan di device baru, timpa manual bagian alias sesuai poin di bawah, lalu install + pairing Syncthing terpisah seperti di atas.
+`setup-new-device.sh` menginstall Syncthing (kalau belum ada), enable service-nya, menampilkan Device ID device ini, dan alias `omp`/`omp-sync` yang benar (bukan versi lama berbasis git). Script juga akan bertanya interaktif: kalau kamu sudah punya Device ID device lain, dia langsung pairing (tambah remote device + share folder `omp-skills`) lewat REST API di sisi device ini.
+
+Pairing tetap butuh langkah manual di **sisi device lain** juga (device itu harus balik menambahkan Device ID device baru ini dan share folder `omp-skills` — lihat perintah REST API di atas), karena satu run script cuma bisa mengatur config Syncthing lokal di device tempat dia dijalankan.
 
 ### Alias `omp` (tanpa auto git pull/push)
 

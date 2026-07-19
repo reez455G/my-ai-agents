@@ -154,21 +154,83 @@ if ! grep -qF "$TOKEN_ENV_FILE" "$SHELL_RC" 2>/dev/null; then
     log "Menambahkan auto-load token ke $SHELL_RC"
 fi
 
-# ── 5b. Tambahkan alias 'omp' agar auto git-pull skill terbaru sebelum start (opsional, sekali saja) ──
+# ── 5b. Alias 'omp' + 'omp-sync' (skill sync via Syncthing, bukan git — program.md §13) ──
 OMP_BIN="$(type -P omp || echo "$HOME/.bun/bin/omp")"
-ALIAS_LINE="alias omp=\"(cd $PWD && git pull origin main -q && $OMP_BIN && ./sync-skills.sh)\""
+ALIAS_OMP="alias omp=\"$OMP_BIN\""
 if grep -qF "alias omp=" "$SHELL_RC" 2>/dev/null; then
-    if grep -qF "$ALIAS_LINE" "$SHELL_RC" 2>/dev/null; then
+    if grep -qF "$ALIAS_OMP" "$SHELL_RC" 2>/dev/null; then
         log "Alias 'omp' sudah terpasang dan up-to-date di $SHELL_RC"
     else
-        log "Mendeteksi versi alias 'omp' lama/berbeda di $SHELL_RC. Memperbarui..."
-        grep -v "alias omp=" "$SHELL_RC" > "$SHELL_RC.tmp" && mv "$SHELL_RC.tmp" "$SHELL_RC"
-        echo "$ALIAS_LINE" >> "$SHELL_RC"
+        log "Mendeteksi versi alias 'omp' lama/berbeda (mis. auto git-pull/sync-skills) di $SHELL_RC. Memperbarui..."
+        grep -v "alias omp=" "$SHELL_RC" > "$SHELL_RC.tmp" || true
+        mv "$SHELL_RC.tmp" "$SHELL_RC"
+        echo "$ALIAS_OMP" >> "$SHELL_RC"
         log "Alias 'omp' berhasil diperbarui di $SHELL_RC"
     fi
 else
-    echo "$ALIAS_LINE" >> "$SHELL_RC"
-    log "Menambahkan alias 'omp' (auto-pull sebelum start & auto-push setelah exit) ke $SHELL_RC"
+    echo "$ALIAS_OMP" >> "$SHELL_RC"
+    log "Menambahkan alias 'omp' ke $SHELL_RC"
+fi
+
+ALIAS_SYNC="alias omp-sync=\"cd $PWD && git pull origin main && git push origin main\""
+if grep -qF "alias omp-sync=" "$SHELL_RC" 2>/dev/null; then
+    if grep -qF "$ALIAS_SYNC" "$SHELL_RC" 2>/dev/null; then
+        log "Alias 'omp-sync' sudah terpasang dan up-to-date di $SHELL_RC"
+    else
+        grep -v "alias omp-sync=" "$SHELL_RC" > "$SHELL_RC.tmp" || true
+        mv "$SHELL_RC.tmp" "$SHELL_RC"
+        echo "$ALIAS_SYNC" >> "$SHELL_RC"
+        log "Alias 'omp-sync' berhasil diperbarui di $SHELL_RC"
+    fi
+else
+    echo "$ALIAS_SYNC" >> "$SHELL_RC"
+    log "Menambahkan alias 'omp-sync' (manual pull+push untuk knowledge/, src/, program.md) ke $SHELL_RC"
+fi
+
+# ── 5c. Setup Syncthing untuk .omp/skills/ (sync real-time, bukan git — program.md §13) ──
+if ! command -v syncthing >/dev/null 2>&1; then
+    if command -v apt >/dev/null 2>&1; then
+        log "Syncthing belum terinstall. Menginstall (butuh sudo)..."
+        sudo apt update && sudo apt install -y syncthing
+    else
+        warn "Syncthing belum terinstall dan package manager selain apt terdeteksi — install manual: https://syncthing.net/downloads/"
+    fi
+fi
+
+if command -v syncthing >/dev/null 2>&1; then
+    systemctl --user enable --now syncthing 2>/dev/null || warn "Gagal enable syncthing service — jalankan manual: systemctl --user enable --now syncthing"
+    sleep 2
+    ST_DEVICE_ID="$(syncthing --device-id 2>/dev/null || true)"
+    ST_CONFIG="$HOME/.config/syncthing/config.xml"
+    [ -f "$ST_CONFIG" ] || ST_CONFIG="$HOME/.local/state/syncthing/config.xml"
+
+    echo
+    log "Syncthing aktif. Device ID device ini:"
+    echo "    $ST_DEVICE_ID"
+    log "Folder yang perlu di-share: omp-skills -> $PWD/.omp/skills (folder ID harus identik di semua device)."
+    log "Detail cara pairing (web UI :8384 atau REST API buat device CLI-only): README.md § 'Sinkronisasi .omp/skills/ via Syncthing'."
+
+    read -rp "Ada Device ID device lain buat di-pairing sekarang lewat REST API? (kosongkan untuk skip) [Device ID]: " PEER_ID
+    if [ -n "$PEER_ID" ]; then
+        ST_API_KEY="$(grep -oP '(?<=<apikey>).*(?=</apikey>)' "$ST_CONFIG" 2>/dev/null || true)"
+        if [ -n "$ST_API_KEY" ]; then
+            curl -fsS -X PUT -H "X-API-Key: $ST_API_KEY" -H "Content-Type: application/json" \
+                "http://localhost:8384/rest/config/devices/$PEER_ID" \
+                -d "{\"deviceID\": \"$PEER_ID\", \"name\": \"peer\", \"addresses\": [\"dynamic\"]}" >/dev/null \
+                && log "Device $PEER_ID ditambahkan di sisi ini." || warn "Gagal menambahkan device $PEER_ID — cek manual via UI (:8384)."
+            curl -fsS -X PUT -H "X-API-Key: $ST_API_KEY" -H "Content-Type: application/json" \
+                "http://localhost:8384/rest/config/folders/omp-skills" \
+                -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$PWD/.omp/skills\", \"type\": \"sendreceive\", \"devices\": [{\"deviceID\": \"$PEER_ID\"}]}" >/dev/null \
+                && log "Folder omp-skills di-share ke $PEER_ID." || warn "Gagal share folder — cek manual via UI (:8384)."
+            warn "Sisi ini selesai. Device $PEER_ID WAJIB juga menambahkan Device ID device ini ($ST_DEVICE_ID) dan share folder omp-skills balik, baru koneksi dua arah jalan."
+        else
+            warn "Tidak bisa baca API key Syncthing di $ST_CONFIG — pairing lewat UI manual saja."
+        fi
+    else
+        log "Skip pairing otomatis. Pairing manual belakangan lewat UI (:8384) atau REST API — lihat README."
+    fi
+else
+    warn "Syncthing tidak terinstall — .omp/skills/ tidak akan tersinkron otomatis ke/dari device ini. Install manual lalu ikuti README."
 fi
 
 # ── 6. Test konektivitas ke Hindsight server ──
@@ -186,3 +248,4 @@ fi
 
 echo
 log "Setup selesai. Jalankan 'omp' di dalam folder repo untuk mulai sesi (mental model & histori akan auto-recall)."
+log "Ingat: 'omp-sync' untuk pull/push manual knowledge/, src/, program.md — .omp/skills/ sudah otomatis via Syncthing kalau pairing di atas berhasil."
