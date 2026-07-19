@@ -198,36 +198,77 @@ if ! command -v syncthing >/dev/null 2>&1; then
 fi
 
 if command -v syncthing >/dev/null 2>&1; then
-    systemctl --user enable --now syncthing 2>/dev/null || warn "Gagal enable syncthing service — jalankan manual: systemctl --user enable --now syncthing"
-    sleep 2
-    ST_DEVICE_ID="$(syncthing --device-id 2>/dev/null || true)"
+    systemctl --user enable --now syncthing 2>/dev/null \
+        || systemctl enable --now "syncthing@$(id -un)" 2>/dev/null \
+        || warn "Gagal enable syncthing lewat systemd (umum di root/VPS/container tanpa user session aktif) — start manual: syncthing serve --no-browser &"
+
     ST_CONFIG="$HOME/.config/syncthing/config.xml"
     [ -f "$ST_CONFIG" ] || ST_CONFIG="$HOME/.local/state/syncthing/config.xml"
+    ST_API_KEY="$(grep -oP '(?<=<apikey>).*(?=</apikey>)' "$ST_CONFIG" 2>/dev/null || true)"
 
-    echo
-    log "Syncthing aktif. Device ID device ini:"
-    echo "    $ST_DEVICE_ID"
-    log "Folder yang perlu di-share: omp-skills -> $PWD/.omp/skills (folder ID harus identik di semua device)."
-    log "Detail cara pairing (web UI :8384 atau REST API buat device CLI-only): README.md § 'Sinkronisasi .omp/skills/ via Syncthing'."
+    # 'enable --now' berhasil TIDAK berarti daemon sudah reachable (butuh waktu, atau systemd --user
+    # diam-diam gagal di environment tanpa session bus — persis kejadian di device root/VPS). Cek
+    # nyata lewat REST API (authenticated — /rest/noauth/health kena CSRF 403 di build Debian-patched)
+    # sebelum lanjut, supaya pairing tidak dicoba di daemon yang belum hidup.
+    ST_READY=0
+    if [ -n "$ST_API_KEY" ]; then
+        for _ in $(seq 1 10); do
+            curl -fsS -H "X-API-Key: $ST_API_KEY" http://localhost:8384/rest/system/ping >/dev/null 2>&1 && { ST_READY=1; break; }
+            sleep 1
+        done
+    fi
 
-    read -rp "Ada Device ID device lain buat di-pairing sekarang lewat REST API? (kosongkan untuk skip) [Device ID]: " PEER_ID
-    if [ -n "$PEER_ID" ]; then
-        ST_API_KEY="$(grep -oP '(?<=<apikey>).*(?=</apikey>)' "$ST_CONFIG" 2>/dev/null || true)"
-        if [ -n "$ST_API_KEY" ]; then
+    if [ "$ST_READY" -eq 1 ]; then
+        ST_DEVICE_ID="$(syncthing --device-id 2>/dev/null || true)"
+        ST_FOLDER_PATH="$PWD/.omp/skills"   # SELALU repo ini ($PWD), bukan asumsi $HOME — beda kalau dijalankan sebagai root/di path custom
+
+        echo
+        log "Syncthing aktif. Device ID device ini:"
+        echo "    $ST_DEVICE_ID"
+        log "Folder yang perlu di-share: omp-skills -> $ST_FOLDER_PATH (folder ID harus identik di semua device)."
+        log "Detail cara pairing (web UI :8384 atau REST API buat device CLI-only): README.md § 'Sinkronisasi .omp/skills/ via Syncthing'."
+
+        read -rp "Ada Device ID device lain buat di-pairing sekarang lewat REST API? (kosongkan untuk skip) [Device ID]: " PEER_ID
+        if [ -n "$PEER_ID" ]; then
             curl -fsS -X PUT -H "X-API-Key: $ST_API_KEY" -H "Content-Type: application/json" \
                 "http://localhost:8384/rest/config/devices/$PEER_ID" \
                 -d "{\"deviceID\": \"$PEER_ID\", \"name\": \"peer\", \"addresses\": [\"dynamic\"]}" >/dev/null \
                 && log "Device $PEER_ID ditambahkan di sisi ini." || warn "Gagal menambahkan device $PEER_ID — cek manual via UI (:8384)."
+            # PUT ke /rest/config/folders/<id> REPLACE seluruh devices list folder itu — kalau folder
+            # ini sudah di-share ke device lain sebelumnya (mis. device ke-3, ke-4, dst.), commit list
+            # baru berisi cuma [PEER_ID] akan DIAM-DIAM MENGHAPUS share ke device lain itu. Baca dulu
+            # devices existing, gabung, baru PUT — supaya menambah, bukan menimpa.
+            EXISTING_FOLDER_JSON="$(curl -fsS -H "X-API-Key: $ST_API_KEY" "http://localhost:8384/rest/config/folders/omp-skills" 2>/dev/null || true)"
+            MERGED_DEVICES_JSON="$(printf '%s' "$EXISTING_FOLDER_JSON" | python3 -c "
+import json, sys
+try:
+    f = json.load(sys.stdin)
+    ids = {d['deviceID'] for d in f.get('devices', [])}
+except Exception:
+    ids = set()
+ids.add('$PEER_ID')
+print(json.dumps([{'deviceID': i} for i in sorted(ids)]))
+" 2>/dev/null || echo "[{\"deviceID\": \"$PEER_ID\"}]")"
             curl -fsS -X PUT -H "X-API-Key: $ST_API_KEY" -H "Content-Type: application/json" \
                 "http://localhost:8384/rest/config/folders/omp-skills" \
-                -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$PWD/.omp/skills\", \"type\": \"sendreceive\", \"devices\": [{\"deviceID\": \"$PEER_ID\"}]}" >/dev/null \
-                && log "Folder omp-skills di-share ke $PEER_ID." || warn "Gagal share folder — cek manual via UI (:8384)."
+                -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$ST_FOLDER_PATH\", \"type\": \"sendreceive\", \"devices\": $MERGED_DEVICES_JSON}" >/dev/null \
+                && log "Folder omp-skills di-share ke $PEER_ID (device existing lain, kalau ada, tetap dipertahankan)." || warn "Gagal share folder — cek manual via UI (:8384)."
+
+            # Verifikasi diri: path yang benar-benar tersimpan harus persis repo ini — kalau meleset,
+            # bilang keras-keras alih-alih diam (ini akar masalah nyata yang pernah kejadian).
+            SAVED_PATH="$(curl -fsS -H "X-API-Key: $ST_API_KEY" "http://localhost:8384/rest/config/folders/omp-skills" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("path",""))' 2>/dev/null || true)"
+            if [ -n "$SAVED_PATH" ] && [ "$SAVED_PATH" != "$ST_FOLDER_PATH" ]; then
+                warn "MISMATCH: Syncthing menyimpan path folder '$SAVED_PATH', seharusnya '$ST_FOLDER_PATH'. Perbaiki manual (lihat README) sebelum lanjut — kalau dibiarkan, sync jalan ke folder yang salah."
+            else
+                log "Path folder terverifikasi cocok: $ST_FOLDER_PATH"
+            fi
+
             warn "Sisi ini selesai. Device $PEER_ID WAJIB juga menambahkan Device ID device ini ($ST_DEVICE_ID) dan share folder omp-skills balik, baru koneksi dua arah jalan."
         else
-            warn "Tidak bisa baca API key Syncthing di $ST_CONFIG — pairing lewat UI manual saja."
+            log "Skip pairing otomatis. Pairing manual belakangan lewat UI (:8384) atau REST API — lihat README."
         fi
     else
-        log "Skip pairing otomatis. Pairing manual belakangan lewat UI (:8384) atau REST API — lihat README."
+        warn "Syncthing daemon belum reachable di :8384 setelah 10 detik — pairing otomatis di-skip (bukan gagal diam-diam, memang belum jalan). Start manual: syncthing serve --no-browser & lalu pairing manual lewat README."
     fi
 else
     warn "Syncthing tidak terinstall — .omp/skills/ tidak akan tersinkron otomatis ke/dari device ini. Install manual lalu ikuti README."

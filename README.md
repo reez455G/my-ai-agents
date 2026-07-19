@@ -383,11 +383,14 @@ Actions → Add Remote Device (tempel Device ID device lain) → di folder `omp-
 
 ### Pairing — via REST API (device CLI-only tanpa browser)
 
+**Jalankan dari root repo, dan pakai `$(pwd)`, bukan `$HOME/my-ai-agents/...`** — kejadian nyata: pairing manual di device yang di-clone ke path custom (mis. `/opt/my-ai-agents` sebagai user `root`, di mana `$HOME` = `/root`) sempat bikin Syncthing bikin folder baru yang salah lokasi (`/root/my-ai-agents/.omp/skills`, kosong/terpisah dari repo asli), bukan sync ke `.omp/skills` yang benar. Selalu verifikasi `path` hasil `GET /rest/config/folders/omp-skills` sama persis dengan lokasi repo kamu sebelum lanjut.
+
 ```bash
 CONFIG=~/.config/syncthing/config.xml
 [ -f "$CONFIG" ] || CONFIG=~/.local/state/syncthing/config.xml
 API_KEY=$(grep -oP '(?<=<apikey>).*(?=</apikey>)' "$CONFIG")
 REMOTE_ID="<device-id-lawan-pairing>"
+REPO_PATH="$(pwd)/.omp/skills"   # jalankan dari root repo — JANGAN pakai $HOME/my-ai-agents/... (salah kalau clone di path custom, mis. /opt/my-ai-agents sebagai root)
 
 # 1. Tambahkan remote device
 curl -s -X PUT -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
@@ -395,11 +398,23 @@ curl -s -X PUT -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
   -d "{\"deviceID\": \"$REMOTE_ID\", \"name\": \"nama-device-lawan\", \"addresses\": [\"dynamic\"]}"
 
 # 2. Tambahkan + share folder omp-skills (jalankan di KEDUA sisi, folder ID harus sama)
+#    PENTING kalau folder ini SUDAH di-share ke device lain sebelumnya (device ke-3, ke-4, dst.):
+#    PUT ini REPLACE seluruh devices list folder — kirim cuma [REMOTE_ID] akan diam-diam MENGHAPUS
+#    share ke device lain yang sudah ada. Baca dulu devices existing, gabung, baru PUT:
+EXISTING_DEVICES=$(curl -s -H "X-API-Key: $API_KEY" http://localhost:8384/rest/config/folders/omp-skills 2>/dev/null \
+  | python3 -c "import json,sys; print(json.dumps([d['deviceID'] for d in json.load(sys.stdin).get('devices',[])]))" 2>/dev/null || echo "[]")
+MERGED_DEVICES=$(python3 -c "
+import json
+ids = set(json.loads('$EXISTING_DEVICES'))
+ids.add('$REMOTE_ID')
+print(json.dumps([{'deviceID': i} for i in sorted(ids)]))
+")
 curl -s -X PUT -H "X-API-Key: $API_KEY" -H "Content-Type: application/json" \
   http://localhost:8384/rest/config/folders/omp-skills \
-  -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$HOME/my-ai-agents/.omp/skills\", \"type\": \"sendreceive\", \"devices\": [{\"deviceID\": \"$REMOTE_ID\"}]}"
+  -d "{\"id\": \"omp-skills\", \"label\": \"omp skills\", \"path\": \"$REPO_PATH\", \"type\": \"sendreceive\", \"devices\": $MERGED_DEVICES}"
 
-# 3. Verifikasi
+# 3. Verifikasi — path HARUS sama persis dengan $REPO_PATH, kalau beda berarti path yang ke-submit salah
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8384/rest/config/folders/omp-skills | python3 -c "import json,sys; print('path:', json.load(sys.stdin)['path'])"
 curl -s -H "X-API-Key: $API_KEY" http://localhost:8384/rest/system/connections | python3 -m json.tool
 curl -s -H "X-API-Key: $API_KEY" "http://localhost:8384/rest/db/status?folder=omp-skills" | python3 -m json.tool
 ```
